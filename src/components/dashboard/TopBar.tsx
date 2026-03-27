@@ -1,12 +1,23 @@
-import { Search } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-export default function TopBar() {
+interface TopBarProps {
+  onSidebarOpen?: () => void;
+}
+
+export default function TopBar({ onSidebarOpen }: TopBarProps) {
   return (
     <header className="flex items-center h-14 px-4 border-b border-border bg-background shrink-0 gap-4">
       {/* Logo */}
       <div className="flex items-center gap-2 w-44 shrink-0">
+        <button
+          onClick={onSidebarOpen}
+          aria-label="Open sidebar"
+          className="md:hidden text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
         <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-sm">
           S
         </div>
