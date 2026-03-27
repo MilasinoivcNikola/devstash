@@ -2,9 +2,22 @@
 
 ## Status
 
+In progress
+
 ## Goals
 
+Implement Dashboard UI Phase 3 — the main content area to the right of the sidebar.
+
+- 4 stats cards at the top: total items, collections, favorite items, favorite collections
+- Recent collections section
+- Pinned items section
+- 10 most recent items section
+
 ## Notes
+
+- Use mock data from `src/lib/mock-data.js` (import directly — no DB yet)
+- Reference screenshot: `context/screenshots/dashboard-ui-main.png`
+- Stats cards are not in the screenshot but are required
 
 ## History
 

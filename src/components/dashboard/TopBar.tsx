@@ -10,7 +10,7 @@ export default function TopBar({ onSidebarOpen }: TopBarProps) {
   return (
     <header className="flex items-center h-14 px-4 border-b border-border bg-background shrink-0 gap-4">
       {/* Logo */}
-      <div className="flex items-center gap-2 w-44 shrink-0">
+      <div className="flex items-center gap-2 shrink-0">
         <button
           onClick={onSidebarOpen}
           aria-label="Open sidebar"
@@ -41,7 +41,7 @@ export default function TopBar({ onSidebarOpen }: TopBarProps) {
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-2 w-44 justify-end shrink-0">
+      <div className="hidden md:flex items-center gap-2 justify-end shrink-0">
         <Button variant="outline" size="sm">
           New Collection
         </Button>
