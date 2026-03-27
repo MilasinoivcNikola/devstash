@@ -16,4 +16,4 @@
 
 ## History
 
-<!-- Keep this updated. Earlies to latest -->
+- **2026-03-27** — Initial Next.js setup from Create Next App; cleaned up default assets, added project context files, updated CLAUDE.md with project instructions.
