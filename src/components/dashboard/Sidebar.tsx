@@ -1,0 +1,238 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import {
+  Code,
+  Sparkles,
+  Terminal,
+  StickyNote,
+  File,
+  Image,
+  Link as LinkIcon,
+  Star,
+  Settings,
+  ChevronDown,
+  PanelLeft,
+  LucideIcon,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import {
+  mockItemTypes,
+  mockItemTypeCounts,
+  mockCollections,
+  mockUser,
+} from '@/lib/mock-data';
+
+const ICON_MAP: Record<string, LucideIcon> = {
+  Code,
+  Sparkles,
+  Terminal,
+  StickyNote,
+  File,
+  Image,
+  Link: LinkIcon,
+};
+
+interface SidebarProps {
+  isOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+}
+
+const favorites = mockCollections.filter((c) => c.isFavorite);
+const recent = mockCollections
+  .filter((c) => !c.isFavorite)
+  .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+
+const userInitials = mockUser.name
+  .split(' ')
+  .map((n) => n[0])
+  .join('');
+
+function SidebarContent({
+  expanded,
+  onToggle,
+}: {
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const [collectionsOpen, setCollectionsOpen] = useState(true);
+
+  return (
+    <div className="flex flex-col h-full overflow-y-auto">
+      {/* Header: Navigation label + toggle */}
+      <div
+        className={cn(
+          'flex items-center border-b border-border shrink-0 h-14',
+          expanded ? 'px-4 justify-between' : 'justify-center'
+        )}
+      >
+        {expanded && (
+          <span className="text-sm font-semibold text-foreground">Navigation</span>
+        )}
+        <button
+          onClick={onToggle}
+          aria-label="Toggle sidebar"
+          className="text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <PanelLeft className="h-5 w-5" />
+        </button>
+      </div>
+
+      {/* Types */}
+      <div className="p-3">
+        {expanded && (
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider px-2 mb-1">
+            Types
+          </p>
+        )}
+        {mockItemTypes.map((type) => {
+          const Icon = ICON_MAP[type.icon];
+          const count =
+            mockItemTypeCounts[type.name as keyof typeof mockItemTypeCounts];
+          return (
+            <Link
+              key={type.id}
+              href={`/items/${type.name}s`}
+              title={expanded ? undefined : `${type.name}s`}
+              className={cn(
+                'flex items-center rounded-md text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors',
+                expanded
+                  ? 'justify-between px-2 py-1.5'
+                  : 'justify-center p-2'
+              )}
+            >
+              {expanded ? (
+                <>
+                  <span className="flex items-center gap-2">
+                    {Icon && (
+                      <Icon className="h-4 w-4 shrink-0" style={{ color: type.color }} />
+                    )}
+                    <span className="capitalize">{type.name}s</span>
+                  </span>
+                  <span className="text-xs text-muted-foreground">{count}</span>
+                </>
+              ) : (
+                Icon && <Icon className="h-4 w-4" style={{ color: type.color }} />
+              )}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Collections — only shown when expanded */}
+      {expanded && (
+        <div className="p-3 border-t border-border">
+          <button
+            onClick={() => setCollectionsOpen((o) => !o)}
+            className="flex items-center justify-between w-full px-2 mb-1 group"
+          >
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              Collections
+            </p>
+            <ChevronDown
+              className={cn(
+                'h-3.5 w-3.5 text-muted-foreground transition-transform duration-200',
+                collectionsOpen ? 'rotate-0' : '-rotate-90'
+              )}
+            />
+          </button>
+
+          {collectionsOpen && (
+            <>
+              {/* Favorites */}
+              <p className="text-xs text-muted-foreground px-2 mt-2 mb-1">Favorites</p>
+              {favorites.map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/collections/${c.id}`}
+                  className="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <Star className="h-3.5 w-3.5 shrink-0 text-yellow-400 fill-yellow-400" />
+                  <span className="truncate">{c.name}</span>
+                </Link>
+              ))}
+
+              {/* Recent */}
+              <p className="text-xs text-muted-foreground px-2 mt-3 mb-1">Recent</p>
+              {recent.map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/collections/${c.id}`}
+                  className="flex items-center justify-between px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                >
+                  <span className="truncate">{c.name}</span>
+                  <span className="text-xs text-muted-foreground shrink-0 ml-2">
+                    {c.itemCount}
+                  </span>
+                </Link>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* User avatar area */}
+      <div className="mt-auto p-3 border-t border-border">
+        <div
+          className={cn(
+            'flex items-center rounded-md hover:bg-accent hover:text-accent-foreground transition-colors',
+            expanded ? 'gap-2 px-2 py-1.5' : 'justify-center p-2'
+          )}
+        >
+          <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold shrink-0">
+            {userInitials}
+          </div>
+          {expanded && (
+            <>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{mockUser.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{mockUser.email}</p>
+              </div>
+              <button
+                aria-label="Settings"
+                className="text-muted-foreground hover:text-foreground shrink-0"
+              >
+                <Settings className="h-4 w-4" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
+  return (
+    <>
+      {/* Desktop: inline collapsible sidebar */}
+      <aside
+        className={cn(
+          'hidden md:flex flex-col border-r border-border bg-sidebar shrink-0 overflow-hidden transition-all duration-200',
+          isOpen ? 'w-60' : 'w-14'
+        )}
+      >
+        <SidebarContent expanded={isOpen} onToggle={onToggle} />
+      </aside>
+
+      {/* Mobile: always a drawer overlay */}
+      <div
+        className={cn(
+          'md:hidden fixed inset-0 z-20 bg-black/50 transition-opacity duration-200',
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        )}
+        onClick={onClose}
+      />
+      <aside
+        className={cn(
+          'md:hidden fixed inset-y-0 left-0 z-30 w-60 flex flex-col bg-sidebar border-r border-border transition-transform duration-200',
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        )}
+      >
+        <SidebarContent expanded={true} onToggle={onClose} />
+      </aside>
+    </>
+  );
+}
