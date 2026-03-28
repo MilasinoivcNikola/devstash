@@ -2,25 +2,14 @@
 
 ## Status
 
-In progress
-
 ## Goals
 
-Implement Dashboard UI Phase 3 — the main content area to the right of the sidebar.
-
-- 4 stats cards at the top: total items, collections, favorite items, favorite collections
-- Recent collections section
-- Pinned items section
-- 10 most recent items section
-
 ## Notes
-
-- Use mock data from `src/lib/mock-data.js` (import directly — no DB yet)
-- Reference screenshot: `context/screenshots/dashboard-ui-main.png`
-- Stats cards are not in the screenshot but are required
 
 ## History
 
 - **2026-03-27** — Initial Next.js setup from Create Next App; cleaned up default assets, added project context files, updated CLAUDE.md with project instructions.
 - **2026-03-27** — Dashboard UI Phase 1: ShadCN UI initialized, dark mode by default, /dashboard route with layout, TopBar with DevStash logo, centered search, and action buttons, sidebar and main area placeholders.
 - **2026-03-27** — Dashboard UI Phase 2: Collapsible sidebar with Navigation header and toggle, item types with color icons and counts linking to `/items/TYPE`, favorite and recent collections (collections section collapsible), user avatar area at the bottom, mobile drawer with slide transition, mobile open button in TopBar.
+- **2026-03-27** — Dashboard UI Phase 3: Main content area with 4 stats cards (total items, collections, favorite items, favorite collections), collections grid, pinned items list, and 10 most recent items. Fixed mobile full-width layout issue in TopBar and DashboardShell.
+- **2026-03-28** — Prisma 7 + Neon PostgreSQL setup: installed `prisma@7`, `@prisma/client@7`, `@prisma/adapter-neon`, `@neondatabase/serverless`, `tsx`, `dotenv`. Created `prisma/schema.prisma` with full data model (User, Item, ItemType, Collection, ItemCollection, Tag + NextAuth models), `prisma.config.ts` (Prisma 7 config with dotenv and DIRECT_URL/DATABASE_URL fallback), `src/lib/prisma.ts` singleton (PrismaNeon adapter required by Prisma 7), `prisma/seed.ts` (seeds 7 system item types), `.env.example`, and `scripts/test-db.ts`. Ran initial migration (`20260328112453_init`) and confirmed all 7 system item types seeded successfully.
