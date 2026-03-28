@@ -1,9 +1,5 @@
-import {
-  mockItems,
-  mockItemTypes,
-  mockItemTypeCounts,
-} from '@/lib/mock-data';
 import { getRecentCollections, getCollectionStats, CollectionWithMeta } from '@/lib/db/collections';
+import { getPinnedItems, getRecentItems, getItemStats, ItemWithMeta } from '@/lib/db/items';
 import {
   Code,
   Sparkles,
@@ -31,16 +27,6 @@ const ICON_MAP: Record<string, LucideIcon> = {
   Link: LinkIcon,
 };
 
-const totalItems = Object.values(mockItemTypeCounts).reduce((a, b) => a + b, 0);
-const favoriteItems = mockItems.filter((i) => i.isFavorite).length;
-
-const pinnedItems = mockItems.filter((i) => i.isPinned);
-const recentItems = [...mockItems]
-  .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-  .slice(0, 10);
-
-const TYPE_MAP = Object.fromEntries(mockItemTypes.map((t) => [t.id, t]));
-
 function formatDate(date: Date) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
@@ -66,8 +52,6 @@ function StatCard({
     </div>
   );
 }
-
-type Item = (typeof mockItems)[0];
 
 function CollectionCard({ collection }: { collection: CollectionWithMeta }) {
   return (
@@ -106,17 +90,19 @@ function CollectionCard({ collection }: { collection: CollectionWithMeta }) {
   );
 }
 
-function ItemRow({ item }: { item: Item }) {
-  const type = TYPE_MAP[item.itemTypeId];
-  const Icon = type ? ICON_MAP[type.icon] : null;
+function ItemCard({ item }: { item: ItemWithMeta }) {
+  const Icon = ICON_MAP[item.itemType.icon];
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-border last:border-0">
+    <div
+      className="bg-card border border-border rounded-lg px-4 py-3 flex items-start gap-3 border-l-[3px]"
+      style={{ borderLeftColor: item.itemType.color }}
+    >
       <div
         className="h-8 w-8 rounded-md flex items-center justify-center shrink-0 mt-0.5"
-        style={{ backgroundColor: type?.color ? `${type.color}22` : undefined }}
+        style={{ backgroundColor: `${item.itemType.color}22` }}
       >
-        {Icon && <Icon className="h-4 w-4" style={{ color: type?.color }} />}
+        {Icon && <Icon className="h-4 w-4" style={{ color: item.itemType.color }} />}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
@@ -131,18 +117,25 @@ function ItemRow({ item }: { item: Item }) {
         {item.description && (
           <p className="text-xs text-muted-foreground truncate mt-0.5">{item.description}</p>
         )}
-        {item.tags && item.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            {item.tags.map((tag) => (
-              <span
-                key={tag}
-                className="text-xs bg-accent text-accent-foreground rounded px-1.5 py-0.5"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
+        <div className="flex flex-wrap gap-1 mt-1.5">
+          <span
+            className="text-xs rounded px-1.5 py-0.5 font-medium"
+            style={{
+              backgroundColor: `${item.itemType.color}22`,
+              color: item.itemType.color,
+            }}
+          >
+            {item.itemType.name}
+          </span>
+          {item.tags.map((tag) => (
+            <span
+              key={tag}
+              className="text-xs bg-accent text-accent-foreground rounded px-1.5 py-0.5"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
       </div>
       <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
         {formatDate(item.createdAt)}
@@ -152,9 +145,12 @@ function ItemRow({ item }: { item: Item }) {
 }
 
 export default async function DashboardPage() {
-  const [collections, collectionStats] = await Promise.all([
+  const [collections, collectionStats, itemStats, pinnedItems, recentItems] = await Promise.all([
     getRecentCollections(),
     getCollectionStats(),
+    getItemStats(),
+    getPinnedItems(),
+    getRecentItems(),
   ]);
 
   return (
@@ -167,9 +163,9 @@ export default async function DashboardPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total Items" value={totalItems} icon={Package} />
+        <StatCard label="Total Items" value={itemStats.total} icon={Package} />
         <StatCard label="Collections" value={collectionStats.total} icon={FolderOpen} />
-        <StatCard label="Favorite Items" value={favoriteItems} icon={Star} />
+        <StatCard label="Favorite Items" value={itemStats.favorites} icon={Star} />
         <StatCard label="Favorite Collections" value={collectionStats.favorites} icon={Star} />
       </div>
 
@@ -192,26 +188,26 @@ export default async function DashboardPage() {
       </section>
 
       {/* Pinned */}
-      <section>
-        <div className="flex items-center gap-2 mb-4">
-          <Pin className="h-4 w-4 text-muted-foreground" />
-          <h2 className="text-base font-semibold text-foreground">Pinned</h2>
-        </div>
-        <div className="bg-card border border-border rounded-lg px-4">
-          {pinnedItems.length > 0 ? (
-            pinnedItems.map((item) => <ItemRow key={item.id} item={item} />)
-          ) : (
-            <p className="text-sm text-muted-foreground py-4">No pinned items.</p>
-          )}
-        </div>
-      </section>
+      {pinnedItems.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Pin className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-base font-semibold text-foreground">Pinned</h2>
+          </div>
+          <div className="flex flex-col gap-3">
+            {pinnedItems.map((item) => (
+              <ItemCard key={item.id} item={item} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Recent Items */}
       <section>
         <h2 className="text-base font-semibold text-foreground mb-4">Recent Items</h2>
-        <div className="bg-card border border-border rounded-lg px-4">
+        <div className="flex flex-col gap-3">
           {recentItems.map((item) => (
-            <ItemRow key={item.id} item={item} />
+            <ItemCard key={item.id} item={item} />
           ))}
         </div>
       </section>
