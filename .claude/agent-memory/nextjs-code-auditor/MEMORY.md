@@ -1,0 +1,1 @@
+- [DevStash Project Architecture](project_architecture.md) — Early-stage app, no auth wired yet, mock user in Sidebar, unscoped DB queries, dead code in mock-data.ts

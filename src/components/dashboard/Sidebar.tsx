@@ -3,36 +3,19 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import {
-  Code,
-  Sparkles,
-  Terminal,
-  StickyNote,
-  File,
-  Image,
-  Link as LinkIcon,
   Star,
   Settings,
   ChevronDown,
   PanelLeft,
-  LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { mockUser } from '@/lib/mock-data';
 import { SidebarItemType } from '@/lib/db/items';
 import { SidebarCollection } from '@/lib/db/collections';
 import { Badge } from '@/components/ui/badge';
+import { ICON_MAP } from '@/lib/constants/item-types';
 
 const PRO_TYPES = new Set(['file', 'image']);
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  Code,
-  Sparkles,
-  Terminal,
-  StickyNote,
-  File,
-  Image,
-  Link: LinkIcon,
-};
 
 interface SidebarProps {
   isOpen: boolean;

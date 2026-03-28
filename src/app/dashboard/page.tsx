@@ -1,13 +1,6 @@
 import { getRecentCollections, getCollectionStats, CollectionWithMeta } from '@/lib/db/collections';
 import { getPinnedItems, getRecentItems, getItemStats, ItemWithMeta } from '@/lib/db/items';
 import {
-  Code,
-  Sparkles,
-  Terminal,
-  StickyNote,
-  File,
-  Image,
-  Link as LinkIcon,
   Star,
   Pin,
   Package,
@@ -16,16 +9,7 @@ import {
   LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
-
-const ICON_MAP: Record<string, LucideIcon> = {
-  Code,
-  Sparkles,
-  Terminal,
-  StickyNote,
-  File,
-  Image,
-  Link: LinkIcon,
-};
+import { ICON_MAP } from '@/lib/constants/item-types';
 
 function formatDate(date: Date) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
