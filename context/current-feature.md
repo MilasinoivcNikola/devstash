@@ -2,9 +2,22 @@
 
 ## Status
 
+In progress
+
 ## Goals
 
+Apply quick-win fixes surfaced by the codebase audit — low risk, no architectural changes.
+
+1. **Add `'use client'` to `TopBar.tsx`** — it accepts `onClick` props but has no client directive
+2. **Deduplicate `ICON_MAP`** — defined identically in `dashboard/page.tsx` and `Sidebar.tsx`; extract to `src/lib/constants/item-types.ts`
+3. **Fix `seedSystemItemTypes` to use `upsert`** — replace non-atomic `findFirst` + `create` with `upsert`
+4. **Add missing DB indexes for `isPinned` and `isFavorite`** — add composite `(userId, isPinned)` and `(userId, isFavorite)` indexes to the `Item` model in `schema.prisma`, then run `npx prisma migrate dev --name add_item_filter_indexes` to sync dev; deploy to prod with `prisma migrate deploy`
+
 ## Notes
+
+- All changes are isolated and non-breaking
+- Item filter indexes (goal 6) require a migration — run `prisma migrate dev` in dev first, then `prisma migrate deploy` in production before deploying
+- `ICON_MAP` extraction touches two files but is a pure refactor with no behavior change
 
 ## History
 
