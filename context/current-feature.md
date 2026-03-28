@@ -2,22 +2,9 @@
 
 ## Status
 
-In progress
-
 ## Goals
 
-Apply quick-win fixes surfaced by the codebase audit — low risk, no architectural changes.
-
-1. **Add `'use client'` to `TopBar.tsx`** — it accepts `onClick` props but has no client directive
-2. **Deduplicate `ICON_MAP`** — defined identically in `dashboard/page.tsx` and `Sidebar.tsx`; extract to `src/lib/constants/item-types.ts`
-3. **Fix `seedSystemItemTypes` to use `upsert`** — replace non-atomic `findFirst` + `create` with `upsert`
-4. **Add missing DB indexes for `isPinned` and `isFavorite`** — add composite `(userId, isPinned)` and `(userId, isFavorite)` indexes to the `Item` model in `schema.prisma`, then run `npx prisma migrate dev --name add_item_filter_indexes` to sync dev; deploy to prod with `prisma migrate deploy`
-
 ## Notes
-
-- All changes are isolated and non-breaking
-- Item filter indexes (goal 6) require a migration — run `prisma migrate dev` in dev first, then `prisma migrate deploy` in production before deploying
-- `ICON_MAP` extraction touches two files but is a pure refactor with no behavior change
 
 ## History
 
@@ -31,3 +18,4 @@ Apply quick-win fixes surfaced by the codebase audit — low risk, no architectu
 - **2026-03-28** — Dashboard items from DB: created `src/lib/db/items.ts` with `getPinnedItems()`, `getRecentItems()`, and `getItemStats()`. Replaced all mock item data in the dashboard page with real DB queries. Each item renders as its own card with a colored left border and icon derived from its item type, a type tag badge, and tag pills. Pinned section is hidden entirely when no pinned items exist. Stats cards for total and favorite items now pull from the DB.
 - **2026-03-28** — Stats & sidebar from DB: added `getSidebarItemTypes()` to `src/lib/db/items.ts` (system types with real item counts) and `getSidebarCollections()` to `src/lib/db/collections.ts` (favorites + recent, each with computed dominant type color). Made dashboard layout an async server component to fetch sidebar data; passed down through `DashboardShell` props to `Sidebar`. Sidebar now shows real item type counts, star icons for favorite collections, colored circles for recent collections, and a "View all collections" link to `/collections`. Fixed invalid HTML bug (`<p>` inside `<button>`) that broke the collections collapse toggle.
 - **2026-03-28** — Pro badge on sidebar: installed ShadCN Badge component; added a subtle outline "PRO" badge next to the File and Image item types in the expanded sidebar, indicating they are Pro-only features.
+- **2026-03-28** — Audit quick wins: added `'use client'` to `TopBar.tsx`; removed ~290 lines of unused mock data exports; extracted shared `ICON_MAP` constant to `src/lib/constants/item-types.ts`; redirected root route `/` to `/dashboard`; fixed `seedSystemItemTypes` to use atomic `upsert`; added composite DB indexes `(userId, isPinned)` and `(userId, isFavorite)` on `Item` model with migration `20260328185621_add_item_filter_indexes`; excluded `prisma/` and `scripts/` from TypeScript compilation.
