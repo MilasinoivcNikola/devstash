@@ -20,6 +20,9 @@ import { cn } from '@/lib/utils';
 import { mockUser } from '@/lib/mock-data';
 import { SidebarItemType } from '@/lib/db/items';
 import { SidebarCollection } from '@/lib/db/collections';
+import { Badge } from '@/components/ui/badge';
+
+const PRO_TYPES = new Set(['file', 'image']);
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Code,
@@ -106,6 +109,11 @@ function SidebarContent({
                       <Icon className="h-4 w-4 shrink-0" style={{ color: type.color }} />
                     )}
                     <span className="capitalize">{type.name}s</span>
+                    {PRO_TYPES.has(type.name) && (
+                      <Badge variant="outline" className="h-4 px-1 text-[10px] font-semibold text-muted-foreground border-muted-foreground/40 leading-none">
+                        PRO
+                      </Badge>
+                    )}
                   </span>
                   <span className="text-xs text-muted-foreground">{type.count}</span>
                 </>
