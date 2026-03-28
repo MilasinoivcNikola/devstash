@@ -1,9 +1,9 @@
 import {
-  mockCollections,
   mockItems,
   mockItemTypes,
   mockItemTypeCounts,
 } from '@/lib/mock-data';
+import { getRecentCollections, getCollectionStats, CollectionWithMeta } from '@/lib/db/collections';
 import {
   Code,
   Sparkles,
@@ -32,9 +32,7 @@ const ICON_MAP: Record<string, LucideIcon> = {
 };
 
 const totalItems = Object.values(mockItemTypeCounts).reduce((a, b) => a + b, 0);
-const totalCollections = mockCollections.length;
 const favoriteItems = mockItems.filter((i) => i.isFavorite).length;
-const favoriteCollections = mockCollections.filter((c) => c.isFavorite).length;
 
 const pinnedItems = mockItems.filter((i) => i.isPinned);
 const recentItems = [...mockItems]
@@ -69,19 +67,14 @@ function StatCard({
   );
 }
 
-type Collection = (typeof mockCollections)[0];
 type Item = (typeof mockItems)[0];
 
-function CollectionCard({
-  collection,
-  index,
-}: {
-  collection: Collection;
-  index: number;
-}) {
-  const previewTypes = mockItemTypes.slice(index % 3, (index % 3) + 4);
+function CollectionCard({ collection }: { collection: CollectionWithMeta }) {
   return (
-    <div className="bg-card border border-border rounded-lg p-4 flex flex-col gap-2">
+    <div
+      className="bg-card border border-border rounded-lg p-4 flex flex-col gap-2 border-l-[3px]"
+      style={{ borderLeftColor: collection.dominantColor }}
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="font-medium text-sm text-foreground truncate">
@@ -96,15 +89,19 @@ function CollectionCard({
         </button>
       </div>
       <p className="text-xs text-muted-foreground">{collection.itemCount} items</p>
-      <p className="text-xs text-muted-foreground line-clamp-2">{collection.description}</p>
-      <div className="flex items-center gap-1.5 mt-1">
-        {previewTypes.map((t) => {
-          const Icon = ICON_MAP[t.icon];
-          return Icon ? (
-            <Icon key={t.id} className="h-3.5 w-3.5" style={{ color: t.color }} />
-          ) : null;
-        })}
-      </div>
+      {collection.description && (
+        <p className="text-xs text-muted-foreground line-clamp-2">{collection.description}</p>
+      )}
+      {collection.types.length > 0 && (
+        <div className="flex items-center gap-1.5 mt-1">
+          {collection.types.map((t) => {
+            const Icon = ICON_MAP[t.icon];
+            return Icon ? (
+              <Icon key={t.id} className="h-3.5 w-3.5" style={{ color: t.color }} />
+            ) : null;
+          })}
+        </div>
+      )}
     </div>
   );
 }
@@ -154,7 +151,12 @@ function ItemRow({ item }: { item: Item }) {
   );
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const [collections, collectionStats] = await Promise.all([
+    getRecentCollections(),
+    getCollectionStats(),
+  ]);
+
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Header */}
@@ -166,9 +168,9 @@ export default function DashboardPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total Items" value={totalItems} icon={Package} />
-        <StatCard label="Collections" value={totalCollections} icon={FolderOpen} />
+        <StatCard label="Collections" value={collectionStats.total} icon={FolderOpen} />
         <StatCard label="Favorite Items" value={favoriteItems} icon={Star} />
-        <StatCard label="Favorite Collections" value={favoriteCollections} icon={Star} />
+        <StatCard label="Favorite Collections" value={collectionStats.favorites} icon={Star} />
       </div>
 
       {/* Collections */}
@@ -183,8 +185,8 @@ export default function DashboardPage() {
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {mockCollections.map((c, i) => (
-            <CollectionCard key={c.id} collection={c} index={i} />
+          {collections.map((c) => (
+            <CollectionCard key={c.id} collection={c} />
           ))}
         </div>
       </section>
