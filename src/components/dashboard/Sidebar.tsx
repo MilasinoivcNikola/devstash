@@ -17,12 +17,9 @@ import {
   LucideIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  mockItemTypes,
-  mockItemTypeCounts,
-  mockCollections,
-  mockUser,
-} from '@/lib/mock-data';
+import { mockUser } from '@/lib/mock-data';
+import { SidebarItemType } from '@/lib/db/items';
+import { SidebarCollection } from '@/lib/db/collections';
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Code,
@@ -38,12 +35,9 @@ interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
   onClose: () => void;
+  itemTypes: SidebarItemType[];
+  sidebarCollections: { favorites: SidebarCollection[]; recent: SidebarCollection[] };
 }
-
-const favorites = mockCollections.filter((c) => c.isFavorite);
-const recent = mockCollections
-  .filter((c) => !c.isFavorite)
-  .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 
 const userInitials = mockUser.name
   .split(' ')
@@ -53,9 +47,13 @@ const userInitials = mockUser.name
 function SidebarContent({
   expanded,
   onToggle,
+  itemTypes,
+  sidebarCollections,
 }: {
   expanded: boolean;
   onToggle: () => void;
+  itemTypes: SidebarItemType[];
+  sidebarCollections: { favorites: SidebarCollection[]; recent: SidebarCollection[] };
 }) {
   const [collectionsOpen, setCollectionsOpen] = useState(true);
 
@@ -87,10 +85,8 @@ function SidebarContent({
             Types
           </p>
         )}
-        {mockItemTypes.map((type) => {
+        {itemTypes.map((type) => {
           const Icon = ICON_MAP[type.icon];
-          const count =
-            mockItemTypeCounts[type.name as keyof typeof mockItemTypeCounts];
           return (
             <Link
               key={type.id}
@@ -111,7 +107,7 @@ function SidebarContent({
                     )}
                     <span className="capitalize">{type.name}s</span>
                   </span>
-                  <span className="text-xs text-muted-foreground">{count}</span>
+                  <span className="text-xs text-muted-foreground">{type.count}</span>
                 </>
               ) : (
                 Icon && <Icon className="h-4 w-4" style={{ color: type.color }} />
@@ -128,9 +124,9 @@ function SidebarContent({
             onClick={() => setCollectionsOpen((o) => !o)}
             className="flex items-center justify-between w-full px-2 mb-1 group"
           >
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Collections
-            </p>
+            </span>
             <ChevronDown
               className={cn(
                 'h-3.5 w-3.5 text-muted-foreground transition-transform duration-200',
@@ -142,32 +138,49 @@ function SidebarContent({
           {collectionsOpen && (
             <>
               {/* Favorites */}
-              <p className="text-xs text-muted-foreground px-2 mt-2 mb-1">Favorites</p>
-              {favorites.map((c) => (
-                <Link
-                  key={c.id}
-                  href={`/collections/${c.id}`}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                >
-                  <Star className="h-3.5 w-3.5 shrink-0 text-yellow-400 fill-yellow-400" />
-                  <span className="truncate">{c.name}</span>
-                </Link>
-              ))}
+              {sidebarCollections.favorites.length > 0 && (
+                <>
+                  <p className="text-xs text-muted-foreground px-2 mt-2 mb-1">Favorites</p>
+                  {sidebarCollections.favorites.map((c) => (
+                    <Link
+                      key={c.id}
+                      href={`/collections/${c.id}`}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
+                      <Star className="h-3.5 w-3.5 shrink-0 text-yellow-400 fill-yellow-400" />
+                      <span className="truncate">{c.name}</span>
+                    </Link>
+                  ))}
+                </>
+              )}
 
               {/* Recent */}
-              <p className="text-xs text-muted-foreground px-2 mt-3 mb-1">Recent</p>
-              {recent.map((c) => (
-                <Link
-                  key={c.id}
-                  href={`/collections/${c.id}`}
-                  className="flex items-center justify-between px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                >
-                  <span className="truncate">{c.name}</span>
-                  <span className="text-xs text-muted-foreground shrink-0 ml-2">
-                    {c.itemCount}
-                  </span>
-                </Link>
-              ))}
+              {sidebarCollections.recent.length > 0 && (
+                <>
+                  <p className="text-xs text-muted-foreground px-2 mt-3 mb-1">Recent</p>
+                  {sidebarCollections.recent.map((c) => (
+                    <Link
+                      key={c.id}
+                      href={`/collections/${c.id}`}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-md text-sm text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                    >
+                      <span
+                        className="h-2.5 w-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: c.dominantColor }}
+                      />
+                      <span className="truncate">{c.name}</span>
+                    </Link>
+                  ))}
+                </>
+              )}
+
+              {/* View all */}
+              <Link
+                href="/collections"
+                className="block px-2 py-1.5 mt-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                View all collections
+              </Link>
             </>
           )}
         </div>
@@ -204,7 +217,7 @@ function SidebarContent({
   );
 }
 
-export default function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
+export default function Sidebar({ isOpen, onToggle, onClose, itemTypes, sidebarCollections }: SidebarProps) {
   return (
     <>
       {/* Desktop: inline collapsible sidebar */}
@@ -214,7 +227,12 @@ export default function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
           isOpen ? 'w-60' : 'w-14'
         )}
       >
-        <SidebarContent expanded={isOpen} onToggle={onToggle} />
+        <SidebarContent
+          expanded={isOpen}
+          onToggle={onToggle}
+          itemTypes={itemTypes}
+          sidebarCollections={sidebarCollections}
+        />
       </aside>
 
       {/* Mobile: always a drawer overlay */}
@@ -231,7 +249,12 @@ export default function Sidebar({ isOpen, onToggle, onClose }: SidebarProps) {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <SidebarContent expanded={true} onToggle={onClose} />
+        <SidebarContent
+          expanded={true}
+          onToggle={onClose}
+          itemTypes={itemTypes}
+          sidebarCollections={sidebarCollections}
+        />
       </aside>
     </>
   );

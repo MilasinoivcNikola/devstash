@@ -76,3 +76,51 @@ export async function getCollectionStats() {
   ]);
   return { total, favorites };
 }
+
+export type SidebarCollection = {
+  id: string;
+  name: string;
+  isFavorite: boolean;
+  dominantColor: string;
+};
+
+export async function getSidebarCollections(): Promise<{
+  favorites: SidebarCollection[];
+  recent: SidebarCollection[];
+}> {
+  const collections = await prisma.collection.findMany({
+    include: {
+      items: {
+        include: {
+          item: { include: { itemType: true } },
+        },
+      },
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+
+  const mapped: SidebarCollection[] = collections.map((c) => {
+    const typeCounts = new Map<string, { color: string; count: number }>();
+    for (const { item } of c.items) {
+      const key = item.itemTypeId;
+      const existing = typeCounts.get(key);
+      if (existing) {
+        existing.count++;
+      } else {
+        typeCounts.set(key, { color: item.itemType.color, count: 1 });
+      }
+    }
+    const sorted = Array.from(typeCounts.values()).sort((a, b) => b.count - a.count);
+    return {
+      id: c.id,
+      name: c.name,
+      isFavorite: c.isFavorite,
+      dominantColor: sorted[0]?.color ?? '#6b7280',
+    };
+  });
+
+  return {
+    favorites: mapped.filter((c) => c.isFavorite),
+    recent: mapped.filter((c) => !c.isFavorite),
+  };
+}

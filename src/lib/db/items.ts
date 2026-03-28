@@ -68,3 +68,25 @@ export async function getItemStats() {
   ]);
   return { total, favorites };
 }
+
+export type SidebarItemType = {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  count: number;
+};
+
+export async function getSidebarItemTypes(): Promise<SidebarItemType[]> {
+  const types = await prisma.itemType.findMany({
+    where: { isSystem: true },
+    include: { _count: { select: { items: true } } },
+  });
+  return types.map((t) => ({
+    id: t.id,
+    name: t.name,
+    icon: t.icon,
+    color: t.color,
+    count: t._count.items,
+  }));
+}
