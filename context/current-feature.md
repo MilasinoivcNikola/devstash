@@ -1,10 +1,26 @@
-# Current Feature
+# Current Feature: Auth Phase 2 - Email/Password Credentials
 
 ## Status
 
+In Progress
+
 ## Goals
 
+- Add Credentials provider for email/password authentication
+- Add `password` field to User model via migration (if not already present)
+- Update `auth.config.ts` with Credentials provider placeholder (`authorize: () => null`)
+- Update `auth.ts` to override Credentials provider with bcrypt validation logic
+- Create `POST /api/auth/register` route accepting name, email, password, confirmPassword
+- Registration validates passwords match, checks for existing user, hashes with bcryptjs, creates user
+- Sign-in with email/password redirects to `/dashboard`
+- GitHub OAuth continues to work
+
 ## Notes
+
+- bcryptjs is already installed
+- Uses the split auth config pattern: `auth.config.ts` (edge-compatible placeholder) + `auth.ts` (full bcrypt logic)
+- Registration endpoint returns `{ success, error }` style response
+- Test via curl and NextAuth built-in `/api/auth/signin` page
 
 ## History
 
