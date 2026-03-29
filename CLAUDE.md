@@ -29,3 +29,12 @@ npm run build     # Production build
 npm run start     # Start production server
 npm run lint      # Run ESLint
 ```
+
+## Neon MCP
+
+Always use the following when interacting with the Neon MCP:
+
+- **Project ID:** `holy-cherry-20338252` (devstash)
+- **Branch:** `br-sweet-butterfly-ami8naj4` (development)
+
+**NEVER** query or modify the `production` branch (`br-ancient-art-amtep0p7`) unless explicitly instructed.
