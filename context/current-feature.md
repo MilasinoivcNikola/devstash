@@ -1,25 +1,10 @@
-# Current Feature: Auth UI - Sign In, Register & Sign Out
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Custom `/sign-in` page with email/password fields, GitHub OAuth button, and link to register
-- Custom `/register` page with name, email, password, confirm password fields, validation, and redirect to sign-in on success
-- Sidebar bottom section shows user avatar (GitHub image or initials fallback), user name, and a dropdown with "Sign out" link
-- Clicking the avatar icon navigates to `/profile`
-- Reusable avatar component that handles both GitHub image and initials fallback (e.g., "Brad Traversy" → "BT")
-- Form validation with error display on both sign-in and register pages
-
 ## Notes
-
-- Replace NextAuth default pages with custom UI
-- Avatar logic: use `image` field if present (GitHub OAuth), otherwise generate initials from `name`
-- Register form submits to existing `POST /api/auth/register` endpoint
-- Redirect to sign-in on successful registration
-- Sign-in page uses NextAuth `signIn()` for both credentials and GitHub provider
 
 ## History
 
@@ -36,3 +21,4 @@ In Progress
 - **2026-03-28** — Audit quick wins: added `'use client'` to `TopBar.tsx`; removed ~290 lines of unused mock data exports; extracted shared `ICON_MAP` constant to `src/lib/constants/item-types.ts`; redirected root route `/` to `/dashboard`; fixed `seedSystemItemTypes` to use atomic `upsert`; added composite DB indexes `(userId, isPinned)` and `(userId, isFavorite)` on `Item` model with migration `20260328185621_add_item_filter_indexes`; excluded `prisma/` and `scripts/` from TypeScript compilation.
 - **2026-03-29** — Auth Phase 1 (NextAuth v5 + GitHub OAuth): installed `next-auth@beta` and `@auth/prisma-adapter`; created split auth config pattern (`src/auth.config.ts` edge-compatible + `src/auth.ts` with Prisma adapter and JWT strategy); added GitHub OAuth provider; created `/api/auth/[...nextauth]` route handler; added `src/proxy.ts` to protect `/dashboard/*` routes and redirect unauthenticated users to sign-in; extended `Session` type with `user.id` via `src/types/next-auth.d.ts`.
 - **2026-03-29** — Auth Phase 2 (Email/Password Credentials): added Credentials provider to `src/auth.config.ts` (edge-compatible placeholder `authorize: () => null`) and `src/auth.ts` (full bcrypt validation — lookup by email, compare hash, return user); created `POST /api/auth/register` endpoint (validates fields, passwords match, min 8 chars, duplicate email check, bcryptjs 12 rounds, creates user); no migration needed as `password` field already existed in schema.
+- **2026-03-29** — Auth Phase 3 (Custom Auth UI): replaced NextAuth default pages with custom Server Component pages using Server Actions; `/sign-in` with email/password form and GitHub OAuth button, `/register` with full validation and Sonner success toast on redirect; reusable `UserAvatar` component (GitHub image or initials fallback); sidebar bottom section replaced mock user with real session data, dropdown with Profile link and Sign Out; added `dropdown-menu` and `sonner` shadcn components; configured NextAuth custom pages and GitHub avatar image domain.
