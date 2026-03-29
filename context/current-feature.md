@@ -1,26 +1,10 @@
-# Current Feature: Auth Phase 2 - Email/Password Credentials
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Add Credentials provider for email/password authentication
-- Add `password` field to User model via migration (if not already present)
-- Update `auth.config.ts` with Credentials provider placeholder (`authorize: () => null`)
-- Update `auth.ts` to override Credentials provider with bcrypt validation logic
-- Create `POST /api/auth/register` route accepting name, email, password, confirmPassword
-- Registration validates passwords match, checks for existing user, hashes with bcryptjs, creates user
-- Sign-in with email/password redirects to `/dashboard`
-- GitHub OAuth continues to work
-
 ## Notes
-
-- bcryptjs is already installed
-- Uses the split auth config pattern: `auth.config.ts` (edge-compatible placeholder) + `auth.ts` (full bcrypt logic)
-- Registration endpoint returns `{ success, error }` style response
-- Test via curl and NextAuth built-in `/api/auth/signin` page
 
 ## History
 
@@ -36,3 +20,4 @@ In Progress
 - **2026-03-28** — Pro badge on sidebar: installed ShadCN Badge component; added a subtle outline "PRO" badge next to the File and Image item types in the expanded sidebar, indicating they are Pro-only features.
 - **2026-03-28** — Audit quick wins: added `'use client'` to `TopBar.tsx`; removed ~290 lines of unused mock data exports; extracted shared `ICON_MAP` constant to `src/lib/constants/item-types.ts`; redirected root route `/` to `/dashboard`; fixed `seedSystemItemTypes` to use atomic `upsert`; added composite DB indexes `(userId, isPinned)` and `(userId, isFavorite)` on `Item` model with migration `20260328185621_add_item_filter_indexes`; excluded `prisma/` and `scripts/` from TypeScript compilation.
 - **2026-03-29** — Auth Phase 1 (NextAuth v5 + GitHub OAuth): installed `next-auth@beta` and `@auth/prisma-adapter`; created split auth config pattern (`src/auth.config.ts` edge-compatible + `src/auth.ts` with Prisma adapter and JWT strategy); added GitHub OAuth provider; created `/api/auth/[...nextauth]` route handler; added `src/proxy.ts` to protect `/dashboard/*` routes and redirect unauthenticated users to sign-in; extended `Session` type with `user.id` via `src/types/next-auth.d.ts`.
+- **2026-03-29** — Auth Phase 2 (Email/Password Credentials): added Credentials provider to `src/auth.config.ts` (edge-compatible placeholder `authorize: () => null`) and `src/auth.ts` (full bcrypt validation — lookup by email, compare hash, return user); created `POST /api/auth/register` endpoint (validates fields, passwords match, min 8 chars, duplicate email check, bcryptjs 12 rounds, creates user); no migration needed as `password` field already existed in schema.
