@@ -1,27 +1,10 @@
-# Current Feature: Auth Setup - NextAuth + GitHub Provider
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Install `next-auth@beta` and `@auth/prisma-adapter`
-- Set up split auth config pattern for edge compatibility (`src/auth.config.ts` + `src/auth.ts`)
-- Add GitHub OAuth provider
-- Create API route handler at `src/app/api/auth/[...nextauth]/route.ts`
-- Protect `/dashboard/*` routes via `src/proxy.ts` with redirect to sign-in for unauthenticated users
-- Extend Session type with `user.id` via `src/types/next-auth.d.ts`
-- Add required environment variables: `AUTH_SECRET`, `AUTH_GITHUB_ID`, `AUTH_GITHUB_SECRET`
-
 ## Notes
-
-- Use `next-auth@beta` (not `@latest` which installs v4)
-- Proxy file must be at `src/proxy.ts` (same level as `app/`)
-- Use named export: `export const proxy = auth(...)` not default export
-- Use `session: { strategy: 'jwt' }` with split config pattern
-- Don't set custom `pages.signIn` — use NextAuth's default page
-- Use Context7 to verify the newest config and conventions before implementing
 
 ## History
 
@@ -36,3 +19,4 @@ In Progress
 - **2026-03-28** — Stats & sidebar from DB: added `getSidebarItemTypes()` to `src/lib/db/items.ts` (system types with real item counts) and `getSidebarCollections()` to `src/lib/db/collections.ts` (favorites + recent, each with computed dominant type color). Made dashboard layout an async server component to fetch sidebar data; passed down through `DashboardShell` props to `Sidebar`. Sidebar now shows real item type counts, star icons for favorite collections, colored circles for recent collections, and a "View all collections" link to `/collections`. Fixed invalid HTML bug (`<p>` inside `<button>`) that broke the collections collapse toggle.
 - **2026-03-28** — Pro badge on sidebar: installed ShadCN Badge component; added a subtle outline "PRO" badge next to the File and Image item types in the expanded sidebar, indicating they are Pro-only features.
 - **2026-03-28** — Audit quick wins: added `'use client'` to `TopBar.tsx`; removed ~290 lines of unused mock data exports; extracted shared `ICON_MAP` constant to `src/lib/constants/item-types.ts`; redirected root route `/` to `/dashboard`; fixed `seedSystemItemTypes` to use atomic `upsert`; added composite DB indexes `(userId, isPinned)` and `(userId, isFavorite)` on `Item` model with migration `20260328185621_add_item_filter_indexes`; excluded `prisma/` and `scripts/` from TypeScript compilation.
+- **2026-03-29** — Auth Phase 1 (NextAuth v5 + GitHub OAuth): installed `next-auth@beta` and `@auth/prisma-adapter`; created split auth config pattern (`src/auth.config.ts` edge-compatible + `src/auth.ts` with Prisma adapter and JWT strategy); added GitHub OAuth provider; created `/api/auth/[...nextauth]` route handler; added `src/proxy.ts` to protect `/dashboard/*` routes and redirect unauthenticated users to sign-in; extended `Session` type with `user.id` via `src/types/next-auth.d.ts`.
