@@ -6,13 +6,20 @@ import Sidebar from './Sidebar';
 import { SidebarItemType } from '@/lib/db/items';
 import { SidebarCollection } from '@/lib/db/collections';
 
+interface SessionUser {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
+
 interface DashboardShellProps {
   children: React.ReactNode;
   itemTypes: SidebarItemType[];
   sidebarCollections: { favorites: SidebarCollection[]; recent: SidebarCollection[] };
+  user: SessionUser | null;
 }
 
-export default function DashboardShell({ children, itemTypes, sidebarCollections }: DashboardShellProps) {
+export default function DashboardShell({ children, itemTypes, sidebarCollections, user }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
@@ -25,6 +32,7 @@ export default function DashboardShell({ children, itemTypes, sidebarCollections
           onClose={() => setSidebarOpen(false)}
           itemTypes={itemTypes}
           sidebarCollections={sidebarCollections}
+          user={user}
         />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
