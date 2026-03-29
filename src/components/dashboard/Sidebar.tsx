@@ -2,20 +2,35 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { signOut } from 'next-auth/react';
 import {
   Star,
-  Settings,
   ChevronDown,
   PanelLeft,
+  LogOut,
+  User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { mockUser } from '@/lib/mock-data';
 import { SidebarItemType } from '@/lib/db/items';
 import { SidebarCollection } from '@/lib/db/collections';
 import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ICON_MAP } from '@/lib/constants/item-types';
+import { UserAvatar } from '@/components/shared/UserAvatar';
 
 const PRO_TYPES = new Set(['file', 'image']);
+
+interface SessionUser {
+  name?: string | null;
+  email?: string | null;
+  image?: string | null;
+}
 
 interface SidebarProps {
   isOpen: boolean;
@@ -23,23 +38,21 @@ interface SidebarProps {
   onClose: () => void;
   itemTypes: SidebarItemType[];
   sidebarCollections: { favorites: SidebarCollection[]; recent: SidebarCollection[] };
+  user: SessionUser | null;
 }
-
-const userInitials = mockUser.name
-  .split(' ')
-  .map((n) => n[0])
-  .join('');
 
 function SidebarContent({
   expanded,
   onToggle,
   itemTypes,
   sidebarCollections,
+  user,
 }: {
   expanded: boolean;
   onToggle: () => void;
   itemTypes: SidebarItemType[];
   sidebarCollections: { favorites: SidebarCollection[]; recent: SidebarCollection[] };
+  user: SessionUser | null;
 }) {
   const [collectionsOpen, setCollectionsOpen] = useState(true);
 
@@ -177,38 +190,47 @@ function SidebarContent({
         </div>
       )}
 
-      {/* User avatar area */}
+      {/* User area */}
       <div className="mt-auto p-3 border-t border-border">
-        <div
-          className={cn(
-            'flex items-center rounded-md hover:bg-accent hover:text-accent-foreground transition-colors',
-            expanded ? 'gap-2 px-2 py-1.5' : 'justify-center p-2'
-          )}
-        >
-          <div className="h-7 w-7 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-semibold shrink-0">
-            {userInitials}
-          </div>
-          {expanded && (
-            <>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{mockUser.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{mockUser.email}</p>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className={cn(
+              'flex items-center rounded-md hover:bg-accent hover:text-accent-foreground transition-colors w-full bg-transparent border-0',
+              expanded ? 'gap-2 px-2 py-1.5' : 'justify-center p-2'
+            )}
+            aria-label="User menu"
+          >
+            <UserAvatar name={user?.name} image={user?.image} size={28} />
+            {expanded && (
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-sm font-medium truncate">{user?.name ?? 'User'}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email ?? ''}</p>
               </div>
-              <button
-                aria-label="Settings"
-                className="text-muted-foreground hover:text-foreground shrink-0"
-              >
-                <Settings className="h-4 w-4" />
-              </button>
-            </>
-          )}
-        </div>
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start" className="w-48">
+            <DropdownMenuItem>
+              <Link href="/profile" className="flex items-center gap-2 w-full">
+                <User className="h-4 w-4" />
+                Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => signOut({ callbackUrl: '/sign-in' })}
+            >
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
 }
 
-export default function Sidebar({ isOpen, onToggle, onClose, itemTypes, sidebarCollections }: SidebarProps) {
+export default function Sidebar({ isOpen, onToggle, onClose, itemTypes, sidebarCollections, user }: SidebarProps) {
   return (
     <>
       {/* Desktop: inline collapsible sidebar */}
@@ -223,6 +245,7 @@ export default function Sidebar({ isOpen, onToggle, onClose, itemTypes, sidebarC
           onToggle={onToggle}
           itemTypes={itemTypes}
           sidebarCollections={sidebarCollections}
+          user={user}
         />
       </aside>
 
@@ -245,6 +268,7 @@ export default function Sidebar({ isOpen, onToggle, onClose, itemTypes, sidebarC
           onToggle={onClose}
           itemTypes={itemTypes}
           sidebarCollections={sidebarCollections}
+          user={user}
         />
       </aside>
     </>
