@@ -1,24 +1,10 @@
-# Current Feature: Profile Page
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Create `/profile` route accessible only to authenticated users
-- Display user info: email, name, avatar (GitHub image or initials fallback), account creation date
-- Show usage stats: total items, total collections, and per-type item breakdown
-- Add change password form (email/password users only — hidden for GitHub OAuth users)
-- Add delete account action with confirmation dialog to prevent accidental deletion
-
 ## Notes
-
-- Avatar: reuse existing `UserAvatar` component (GitHub image or initials fallback)
-- Change password button/form must only render when the user has a `password` field set (i.e., not a pure OAuth user)
-- Delete account confirmation dialog should use shadcn `AlertDialog`
-- Item type breakdown covers all 7 system types: snippet, prompt, command, note, file, image, link
-- Route is protected via the existing middleware in `src/proxy.ts` (`/dashboard/*` is already covered; `/profile` may need to be added)
 
 ## History
 
@@ -40,3 +26,4 @@ In Progress
 - **2026-03-30** — Email Verification Toggle Flag: added `EMAIL_VERIFICATION_ENABLED` env var (default `false`); created `src/lib/config.ts` as the single read point; when disabled, register skips token/email/check-email and redirects to `/sign-in?registered=1`; `authorize` in `src/auth.ts` and the sign-in pre-check both respect the flag; `.env.example` updated with `RESEND_API_KEY` and `EMAIL_VERIFICATION_ENABLED` docs.
 - **2026-03-30** — Fix lazy Resend client: moved `new Resend(...)` instantiation from module-level singleton (`src/lib/resend.ts`) into the `sendVerificationEmail` function body in `src/lib/email.ts`; deleted `src/lib/resend.ts`. Fixes Vercel build crash (`Missing API key`) when `RESEND_API_KEY` is not set in the environment.
 - **2026-03-30** — Forgot password flow: added `sendPasswordResetEmail` to `src/lib/email.ts`; created `/forgot-password` page (email form, silent success on unknown email, prevents enumeration); created `/reset-password` page as a Server Component + Client Component (`ResetPasswordForm` with `useActionState`) + separate `actions.ts`; token stored in `VerificationToken` with `reset:<email>` identifier namespace and 1-hour expiry; validation errors returned inline (no redirect, token never re-embedded in URLs); DB-level errors redirect without the token; added "Forgot password?" link and `?reset=1` success message to sign-in page.
+- **2026-03-30** — Profile page: created `/profile` route (auth-protected via middleware); `src/lib/db/profile.ts` with `getProfileUser` (returns `hasPassword` boolean, never exposes hash) and `getProfileStats` (total items, collections, per-type breakdown scoped to userId); profile layout reuses `DashboardShell`; page shows user info card (avatar, name, email, member since), 2-stat grid + 7-type breakdown table, and account section with `ChangePasswordForm` (collapsible, only rendered when `hasPassword` is true, uses `useActionState`) and `DeleteAccountDialog` (controlled AlertDialog with two-step confirmation); installed `alert-dialog` shadcn component (base-ui).
