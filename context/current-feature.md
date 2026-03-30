@@ -1,23 +1,10 @@
-# Current Feature: Forgot Password
+# Current Feature
 
 ## Status
-In Progress
 
 ## Goals
-- Add "Forgot password?" link on the sign-in page
-- Create `/forgot-password` page with email input form
-- On submit, generate a password reset token and store it in the existing `VerificationToken` model (using a distinct identifier prefix to distinguish from email verification tokens)
-- Send a password reset email via Resend with a link to `/reset-password?token=...`
-- Create `/reset-password` page that validates the token, accepts a new password, updates the user's hashed password, and invalidates the token
-- Handle edge cases: invalid token, expired token (1-hour expiry), unknown email (silent success to prevent enumeration)
-- Respect `EMAIL_VERIFICATION_ENABLED` flag — password reset emails always send regardless of this flag (it controls only registration verification)
 
 ## Notes
-- Reuse the existing `VerificationToken` model — no schema migration needed
-- Use `identifier` field as `reset:${email}` to namespace reset tokens separately from email verification tokens
-- Token expiry: 1 hour (shorter than email verification's 24h)
-- Silent success on unknown email (don't reveal whether email exists)
-- Follow existing auth UI patterns: Server Components + Server Actions, Sonner toasts, shadcn/ui components
 
 ## History
 
@@ -38,3 +25,4 @@ In Progress
 - **2026-03-30** — Email Verification on Register: installed `resend`; created `src/lib/resend.ts` singleton and `src/lib/email.ts` (`sendVerificationEmail`); register action now generates a 32-byte random token, stores it in `VerificationToken` (24h expiry), sends a verification email via Resend (`onboarding@resend.dev`), and redirects to `/check-email`; added `/check-email` and `/verify-email` pages (token validation, marks `emailVerified`, handles expired/invalid states); Credentials `authorize` blocks unverified users; sign-in page shows a specific error for unverified accounts; GitHub OAuth users bypass verification. Added `scripts/purge-non-demo-users.ts` utility.
 - **2026-03-30** — Email Verification Toggle Flag: added `EMAIL_VERIFICATION_ENABLED` env var (default `false`); created `src/lib/config.ts` as the single read point; when disabled, register skips token/email/check-email and redirects to `/sign-in?registered=1`; `authorize` in `src/auth.ts` and the sign-in pre-check both respect the flag; `.env.example` updated with `RESEND_API_KEY` and `EMAIL_VERIFICATION_ENABLED` docs.
 - **2026-03-30** — Fix lazy Resend client: moved `new Resend(...)` instantiation from module-level singleton (`src/lib/resend.ts`) into the `sendVerificationEmail` function body in `src/lib/email.ts`; deleted `src/lib/resend.ts`. Fixes Vercel build crash (`Missing API key`) when `RESEND_API_KEY` is not set in the environment.
+- **2026-03-30** — Forgot password flow: added `sendPasswordResetEmail` to `src/lib/email.ts`; created `/forgot-password` page (email form, silent success on unknown email, prevents enumeration); created `/reset-password` page as a Server Component + Client Component (`ResetPasswordForm` with `useActionState`) + separate `actions.ts`; token stored in `VerificationToken` with `reset:<email>` identifier namespace and 1-hour expiry; validation errors returned inline (no redirect, token never re-embedded in URLs); DB-level errors redirect without the token; added "Forgot password?" link and `?reset=1` success message to sign-in page.
