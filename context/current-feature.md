@@ -1,10 +1,24 @@
-# Current Feature
+# Current Feature: Profile Page
 
 ## Status
 
+In Progress
+
 ## Goals
 
+- Create `/profile` route accessible only to authenticated users
+- Display user info: email, name, avatar (GitHub image or initials fallback), account creation date
+- Show usage stats: total items, total collections, and per-type item breakdown
+- Add change password form (email/password users only — hidden for GitHub OAuth users)
+- Add delete account action with confirmation dialog to prevent accidental deletion
+
 ## Notes
+
+- Avatar: reuse existing `UserAvatar` component (GitHub image or initials fallback)
+- Change password button/form must only render when the user has a `password` field set (i.e., not a pure OAuth user)
+- Delete account confirmation dialog should use shadcn `AlertDialog`
+- Item type breakdown covers all 7 system types: snippet, prompt, command, note, file, image, link
+- Route is protected via the existing middleware in `src/proxy.ts` (`/dashboard/*` is already covered; `/profile` may need to be added)
 
 ## History
 
