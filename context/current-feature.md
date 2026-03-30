@@ -1,10 +1,23 @@
-# Current Feature
+# Current Feature: Forgot Password
 
 ## Status
+In Progress
 
 ## Goals
+- Add "Forgot password?" link on the sign-in page
+- Create `/forgot-password` page with email input form
+- On submit, generate a password reset token and store it in the existing `VerificationToken` model (using a distinct identifier prefix to distinguish from email verification tokens)
+- Send a password reset email via Resend with a link to `/reset-password?token=...`
+- Create `/reset-password` page that validates the token, accepts a new password, updates the user's hashed password, and invalidates the token
+- Handle edge cases: invalid token, expired token (1-hour expiry), unknown email (silent success to prevent enumeration)
+- Respect `EMAIL_VERIFICATION_ENABLED` flag — password reset emails always send regardless of this flag (it controls only registration verification)
 
 ## Notes
+- Reuse the existing `VerificationToken` model — no schema migration needed
+- Use `identifier` field as `reset:${email}` to namespace reset tokens separately from email verification tokens
+- Token expiry: 1 hour (shorter than email verification's 24h)
+- Silent success on unknown email (don't reveal whether email exists)
+- Follow existing auth UI patterns: Server Components + Server Actions, Sonner toasts, shadcn/ui components
 
 ## History
 
