@@ -1,19 +1,10 @@
-# Current Feature: Lazy Resend Client Initialization
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Move Resend client instantiation from module load time into the `sendVerificationEmail` function body
-- Build must no longer fail when `RESEND_API_KEY` is absent (e.g. Vercel build without the env var set)
-- No behavior change when `EMAIL_VERIFICATION_ENABLED=true` and a valid key is present
-
 ## Notes
-
-- Root cause: `src/lib/resend.ts` calls `new Resend(process.env.RESEND_API_KEY)` at the top level; Next.js evaluates this during `Collecting page data` at build time, and Resend throws immediately if the key is missing
-- Fix: instantiate `new Resend(...)` inside `sendVerificationEmail` in `src/lib/email.ts` instead, and remove the singleton in `src/lib/resend.ts` (or delete the file entirely if nothing else uses it)
 
 ## History
 
@@ -33,3 +24,4 @@ In Progress
 - **2026-03-29** — Auth Phase 3 (Custom Auth UI): replaced NextAuth default pages with custom Server Component pages using Server Actions; `/sign-in` with email/password form and GitHub OAuth button, `/register` with full validation and Sonner success toast on redirect; reusable `UserAvatar` component (GitHub image or initials fallback); sidebar bottom section replaced mock user with real session data, dropdown with Profile link and Sign Out; added `dropdown-menu` and `sonner` shadcn components; configured NextAuth custom pages and GitHub avatar image domain.
 - **2026-03-30** — Email Verification on Register: installed `resend`; created `src/lib/resend.ts` singleton and `src/lib/email.ts` (`sendVerificationEmail`); register action now generates a 32-byte random token, stores it in `VerificationToken` (24h expiry), sends a verification email via Resend (`onboarding@resend.dev`), and redirects to `/check-email`; added `/check-email` and `/verify-email` pages (token validation, marks `emailVerified`, handles expired/invalid states); Credentials `authorize` blocks unverified users; sign-in page shows a specific error for unverified accounts; GitHub OAuth users bypass verification. Added `scripts/purge-non-demo-users.ts` utility.
 - **2026-03-30** — Email Verification Toggle Flag: added `EMAIL_VERIFICATION_ENABLED` env var (default `false`); created `src/lib/config.ts` as the single read point; when disabled, register skips token/email/check-email and redirects to `/sign-in?registered=1`; `authorize` in `src/auth.ts` and the sign-in pre-check both respect the flag; `.env.example` updated with `RESEND_API_KEY` and `EMAIL_VERIFICATION_ENABLED` docs.
+- **2026-03-30** — Fix lazy Resend client: moved `new Resend(...)` instantiation from module-level singleton (`src/lib/resend.ts`) into the `sendVerificationEmail` function body in `src/lib/email.ts`; deleted `src/lib/resend.ts`. Fixes Vercel build crash (`Missing API key`) when `RESEND_API_KEY` is not set in the environment.
