@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { sendVerificationEmail } from '@/lib/email';
+import { EMAIL_VERIFICATION_ENABLED } from '@/lib/config';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -51,18 +52,20 @@ export default async function RegisterPage({ searchParams }: Props) {
       data: { name, email, password: hashedPassword },
     });
 
-    const token = randomBytes(32).toString('hex');
-    await prisma.verificationToken.create({
-      data: {
-        identifier: email,
-        token,
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      },
-    });
+    if (EMAIL_VERIFICATION_ENABLED) {
+      const token = randomBytes(32).toString('hex');
+      await prisma.verificationToken.create({
+        data: {
+          identifier: email,
+          token,
+          expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
+      });
+      await sendVerificationEmail(email, token);
+      redirect('/check-email');
+    }
 
-    await sendVerificationEmail(email, token);
-
-    redirect('/check-email');
+    redirect('/sign-in?registered=1');
   }
 
   return (

@@ -4,6 +4,7 @@ import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
+import { EMAIL_VERIFICATION_ENABLED } from "@/lib/config";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -46,7 +47,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
 
         if (!passwordMatch) return null;
 
-        if (!user.emailVerified) return null;
+        if (EMAIL_VERIFICATION_ENABLED && !user.emailVerified) return null;
 
         return { id: user.id, email: user.email, name: user.name, image: user.image };
       },

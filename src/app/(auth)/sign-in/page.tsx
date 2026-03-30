@@ -4,6 +4,7 @@ import { AuthError } from 'next-auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
+import { EMAIL_VERIFICATION_ENABLED } from '@/lib/config';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { GitBranch } from 'lucide-react';
@@ -27,7 +28,7 @@ export default async function SignInPage({ searchParams }: Props) {
     const email = formData.get('email') as string;
 
     const user = await prisma.user.findUnique({ where: { email }, select: { emailVerified: true, password: true } });
-    if (user?.password && !user.emailVerified) {
+    if (EMAIL_VERIFICATION_ENABLED && user?.password && !user.emailVerified) {
       const params = new URLSearchParams({ error: 'email_not_verified' });
       if (callbackUrl !== '/dashboard') params.set('callbackUrl', callbackUrl);
       redirect(`/sign-in?${params}`);
