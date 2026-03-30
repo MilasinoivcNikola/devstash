@@ -3,6 +3,7 @@ import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { GitBranch } from 'lucide-react';
@@ -14,6 +15,7 @@ interface Props {
 
 const ERROR_MESSAGES: Record<string, string> = {
   invalid: 'Invalid email or password.',
+  email_not_verified: 'Please verify your email before signing in. Check your inbox for the verification link.',
   default: 'Something went wrong. Please try again.',
 };
 
@@ -22,9 +24,18 @@ export default async function SignInPage({ searchParams }: Props) {
 
   async function credentialsAction(formData: FormData) {
     'use server';
+    const email = formData.get('email') as string;
+
+    const user = await prisma.user.findUnique({ where: { email }, select: { emailVerified: true, password: true } });
+    if (user?.password && !user.emailVerified) {
+      const params = new URLSearchParams({ error: 'email_not_verified' });
+      if (callbackUrl !== '/dashboard') params.set('callbackUrl', callbackUrl);
+      redirect(`/sign-in?${params}`);
+    }
+
     try {
       await signIn('credentials', {
-        email: formData.get('email') as string,
+        email,
         password: formData.get('password') as string,
         redirectTo: callbackUrl,
       });
