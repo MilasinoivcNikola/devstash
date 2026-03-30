@@ -1,9 +1,10 @@
-import { resend } from './resend';
+import { Resend } from 'resend';
 
 const FROM = 'onboarding@resend.dev';
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
 export async function sendVerificationEmail(email: string, token: string) {
+  const resend = new Resend(process.env.RESEND_API_KEY);
   const verifyUrl = `${APP_URL}/verify-email?token=${token}`;
 
   await resend.emails.send({

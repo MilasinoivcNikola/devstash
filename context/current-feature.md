@@ -1,10 +1,19 @@
-# Current Feature
+# Current Feature: Lazy Resend Client Initialization
 
 ## Status
 
+In Progress
+
 ## Goals
 
+- Move Resend client instantiation from module load time into the `sendVerificationEmail` function body
+- Build must no longer fail when `RESEND_API_KEY` is absent (e.g. Vercel build without the env var set)
+- No behavior change when `EMAIL_VERIFICATION_ENABLED=true` and a valid key is present
+
 ## Notes
+
+- Root cause: `src/lib/resend.ts` calls `new Resend(process.env.RESEND_API_KEY)` at the top level; Next.js evaluates this during `Collecting page data` at build time, and Resend throws immediately if the key is missing
+- Fix: instantiate `new Resend(...)` inside `sendVerificationEmail` in `src/lib/email.ts` instead, and remove the singleton in `src/lib/resend.ts` (or delete the file entirely if nothing else uses it)
 
 ## History
 
