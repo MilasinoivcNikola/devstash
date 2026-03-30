@@ -11,7 +11,7 @@ import { GitBranch } from 'lucide-react';
 import { RegisteredToast } from '@/components/shared/RegisteredToast';
 
 interface Props {
-  searchParams: Promise<{ error?: string; callbackUrl?: string }>;
+  searchParams: Promise<{ error?: string; callbackUrl?: string; registered?: string; reset?: string }>;
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -21,7 +21,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default async function SignInPage({ searchParams }: Props) {
-  const { error, callbackUrl = '/dashboard' } = await searchParams;
+  const { error, callbackUrl = '/dashboard', reset } = await searchParams;
 
   async function credentialsAction(formData: FormData) {
     'use server';
@@ -99,7 +99,12 @@ export default async function SignInPage({ searchParams }: Props) {
           />
         </div>
         <div className="space-y-1">
-          <label htmlFor="password" className="text-sm font-medium">Password</label>
+          <div className="flex items-center justify-between">
+            <label htmlFor="password" className="text-sm font-medium">Password</label>
+            <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-foreground">
+              Forgot password?
+            </Link>
+          </div>
           <Input
             id="password"
             name="password"
@@ -109,6 +114,12 @@ export default async function SignInPage({ searchParams }: Props) {
             required
           />
         </div>
+
+        {reset && (
+          <p className="text-sm text-emerald-500">
+            Password reset successfully. You can now sign in.
+          </p>
+        )}
 
         {error && (
           <p className="text-sm text-destructive">
