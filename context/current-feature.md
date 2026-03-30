@@ -1,24 +1,10 @@
-# Current Feature: Email Verification Toggle Flag
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Add a flag (env variable) to enable or disable email verification on register
-- When disabled, users can register and sign in without needing to verify their email
-- When enabled, existing email verification flow runs as-is
-- The flag should be easy to toggle without code changes (env var)
-- Credentials `authorize` should respect the flag (skip verification check when disabled)
-- Sign-in page error for unverified accounts should only show when verification is enabled
-
 ## Notes
-
-- Current constraint: Resend has no custom domain linked, so only the Resend account email can receive verification emails — making registration unusable for all other users during development
-- Proposed solution: `EMAIL_VERIFICATION_ENABLED=true/false` env variable (default `false` for dev safety)
-- When disabled: register action skips token generation, email sending, and redirect to `/check-email`; user is redirected to sign-in directly
-- The `.env.example` should document this flag clearly
 
 ## History
 
@@ -37,3 +23,4 @@ In Progress
 - **2026-03-29** — Auth Phase 2 (Email/Password Credentials): added Credentials provider to `src/auth.config.ts` (edge-compatible placeholder `authorize: () => null`) and `src/auth.ts` (full bcrypt validation — lookup by email, compare hash, return user); created `POST /api/auth/register` endpoint (validates fields, passwords match, min 8 chars, duplicate email check, bcryptjs 12 rounds, creates user); no migration needed as `password` field already existed in schema.
 - **2026-03-29** — Auth Phase 3 (Custom Auth UI): replaced NextAuth default pages with custom Server Component pages using Server Actions; `/sign-in` with email/password form and GitHub OAuth button, `/register` with full validation and Sonner success toast on redirect; reusable `UserAvatar` component (GitHub image or initials fallback); sidebar bottom section replaced mock user with real session data, dropdown with Profile link and Sign Out; added `dropdown-menu` and `sonner` shadcn components; configured NextAuth custom pages and GitHub avatar image domain.
 - **2026-03-30** — Email Verification on Register: installed `resend`; created `src/lib/resend.ts` singleton and `src/lib/email.ts` (`sendVerificationEmail`); register action now generates a 32-byte random token, stores it in `VerificationToken` (24h expiry), sends a verification email via Resend (`onboarding@resend.dev`), and redirects to `/check-email`; added `/check-email` and `/verify-email` pages (token validation, marks `emailVerified`, handles expired/invalid states); Credentials `authorize` blocks unverified users; sign-in page shows a specific error for unverified accounts; GitHub OAuth users bypass verification. Added `scripts/purge-non-demo-users.ts` utility.
+- **2026-03-30** — Email Verification Toggle Flag: added `EMAIL_VERIFICATION_ENABLED` env var (default `false`); created `src/lib/config.ts` as the single read point; when disabled, register skips token/email/check-email and redirects to `/sign-in?registered=1`; `authorize` in `src/auth.ts` and the sign-in pre-check both respect the flag; `.env.example` updated with `RESEND_API_KEY` and `EMAIL_VERIFICATION_ENABLED` docs.
