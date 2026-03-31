@@ -87,6 +87,43 @@ export async function getItemsByType(userId: string, typeName: string): Promise<
   return items.map(mapItem);
 }
 
+export type ItemDetail = ItemWithMeta & {
+  content: string | null;
+  contentType: string;
+  language: string | null;
+  url: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
+  updatedAt: Date;
+  collections: Array<{ id: string; name: string }>;
+};
+
+export async function getItemById(userId: string, id: string): Promise<ItemDetail | null> {
+  const item = await prisma.item.findFirst({
+    where: { id, userId },
+    include: {
+      ...itemInclude,
+      collections: {
+        include: { collection: { select: { id: true, name: true } } },
+      },
+    },
+  });
+  if (!item) return null;
+  return {
+    ...mapItem(item),
+    content: item.content,
+    contentType: item.contentType,
+    language: item.language,
+    url: item.url,
+    fileUrl: item.fileUrl,
+    fileName: item.fileName,
+    fileSize: item.fileSize,
+    updatedAt: item.updatedAt,
+    collections: item.collections.map((ic) => ic.collection),
+  };
+}
+
 export async function getSidebarItemTypes(userId: string): Promise<SidebarItemType[]> {
   const types = await prisma.itemType.findMany({
     where: { isSystem: true },

@@ -1,5 +1,5 @@
 import { getRecentCollections, getCollectionStats, CollectionWithMeta } from '@/lib/db/collections';
-import { getPinnedItems, getRecentItems, getItemStats, ItemWithMeta } from '@/lib/db/items';
+import { getPinnedItems, getRecentItems, getItemStats } from '@/lib/db/items';
 import {
   Star,
   Pin,
@@ -12,10 +12,8 @@ import Link from 'next/link';
 import { ICON_MAP } from '@/lib/constants/item-types';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
+import { ItemsGridWrapper } from '@/components/items/ItemsClientWrapper';
 
-function formatDate(date: Date) {
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
 
 function StatCard({
   label,
@@ -76,60 +74,6 @@ function CollectionCard({ collection }: { collection: CollectionWithMeta }) {
   );
 }
 
-function ItemCard({ item }: { item: ItemWithMeta }) {
-  const Icon = ICON_MAP[item.itemType.icon];
-
-  return (
-    <div
-      className="bg-card border border-border rounded-lg px-4 py-3 flex items-start gap-3 border-l-[3px]"
-      style={{ borderLeftColor: item.itemType.color }}
-    >
-      <div
-        className="h-8 w-8 rounded-md flex items-center justify-center shrink-0 mt-0.5"
-        style={{ backgroundColor: `${item.itemType.color}22` }}
-      >
-        {Icon && <Icon className="h-4 w-4" style={{ color: item.itemType.color }} />}
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm font-medium text-foreground truncate">{item.title}</span>
-          {item.isFavorite && (
-            <Star className="h-3 w-3 text-yellow-400 fill-yellow-400 shrink-0" />
-          )}
-          {item.isPinned && (
-            <Pin className="h-3 w-3 text-muted-foreground shrink-0" />
-          )}
-        </div>
-        {item.description && (
-          <p className="text-xs text-muted-foreground truncate mt-0.5">{item.description}</p>
-        )}
-        <div className="flex flex-wrap gap-1 mt-1.5">
-          <span
-            className="text-xs rounded px-1.5 py-0.5 font-medium"
-            style={{
-              backgroundColor: `${item.itemType.color}22`,
-              color: item.itemType.color,
-            }}
-          >
-            {item.itemType.name}
-          </span>
-          {item.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-xs bg-accent text-accent-foreground rounded px-1.5 py-0.5"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      </div>
-      <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
-        {formatDate(item.createdAt)}
-      </span>
-    </div>
-  );
-}
-
 export default async function DashboardPage() {
   const session = await auth();
   const userId = session?.user?.id;
@@ -185,22 +129,14 @@ export default async function DashboardPage() {
             <Pin className="h-4 w-4 text-muted-foreground" />
             <h2 className="text-base font-semibold text-foreground">Pinned</h2>
           </div>
-          <div className="flex flex-col gap-3">
-            {pinnedItems.map((item) => (
-              <ItemCard key={item.id} item={item} />
-            ))}
-          </div>
+          <ItemsGridWrapper items={pinnedItems} showTypeBadge layout="list" />
         </section>
       )}
 
       {/* Recent Items */}
       <section>
         <h2 className="text-base font-semibold text-foreground mb-4">Recent Items</h2>
-        <div className="flex flex-col gap-3">
-          {recentItems.map((item) => (
-            <ItemCard key={item.id} item={item} />
-          ))}
-        </div>
+        <ItemsGridWrapper items={recentItems} showTypeBadge layout="list" />
       </section>
     </div>
   );

@@ -3,12 +3,14 @@
 import { Menu, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface TopBarProps {
   onSidebarOpen?: () => void;
+  logoHref?: string;
 }
 
-export default function TopBar({ onSidebarOpen }: TopBarProps) {
+export default function TopBar({ onSidebarOpen, logoHref = '/' }: TopBarProps) {
   return (
     <header className="flex items-center h-14 px-4 border-b border-border bg-background shrink-0 gap-4">
       {/* Logo */}
@@ -20,10 +22,12 @@ export default function TopBar({ onSidebarOpen }: TopBarProps) {
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-sm">
-          S
-        </div>
-        <span className="font-semibold text-foreground tracking-tight">DevStash</span>
+        <Link href={logoHref} className="flex items-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground font-bold text-sm">
+            S
+          </div>
+          <span className="font-semibold text-foreground tracking-tight">DevStash</span>
+        </Link>
       </div>
 
       {/* Search — centered */}
