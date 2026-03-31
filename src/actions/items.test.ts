@@ -1,10 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updateItem } from './items';
+import { updateItem, deleteItem } from './items';
 import { auth } from '@/auth';
 import * as itemsDb from '@/lib/db/items';
 
 const mockAuth = vi.mocked(auth);
 const mockUpdateItemDb = vi.spyOn(itemsDb, 'updateItem');
+const mockDeleteItemDb = vi.spyOn(itemsDb, 'deleteItem');
 
 const session = { user: { id: 'user-1', email: 'user@test.com' } };
 
@@ -39,6 +40,45 @@ const validInput = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe('deleteItem server action', () => {
+  it('returns unauthorized when no session', async () => {
+    mockAuth.mockResolvedValue(null);
+
+    const result = await deleteItem('item-1');
+
+    expect(result.success).toBe(false);
+    expect((result as { success: false; error: string }).error).toBe('Unauthorized');
+  });
+
+  it('returns error when item not found or not owned', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    mockDeleteItemDb.mockResolvedValue(false);
+
+    const result = await deleteItem('item-99');
+
+    expect(result.success).toBe(false);
+    expect((result as { success: false; error: string }).error).toBe('Item not found');
+  });
+
+  it('returns success when item is deleted', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    mockDeleteItemDb.mockResolvedValue(true);
+
+    const result = await deleteItem('item-1');
+
+    expect(result.success).toBe(true);
+  });
+
+  it('calls db delete with correct userId and itemId', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    mockDeleteItemDb.mockResolvedValue(true);
+
+    await deleteItem('item-1');
+
+    expect(mockDeleteItemDb).toHaveBeenCalledWith('user-1', 'item-1');
+  });
 });
 
 describe('updateItem server action', () => {

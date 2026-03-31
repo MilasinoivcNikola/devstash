@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemById, updateItem } from './items';
+import { getItemById, updateItem, deleteItem } from './items';
 import { prisma } from '@/lib/prisma';
 
 const mockFindFirst = vi.mocked(prisma.item.findFirst);
 const mockUpdate = vi.mocked(prisma.item.update);
+const mockDelete = vi.mocked(prisma.item.delete);
 
 const baseItem = {
   id: 'item-1',
@@ -128,6 +129,38 @@ describe('updateItem', () => {
     expect(result!.language).toBe('javascript');
     expect(result!.tags).toEqual(['react', 'hooks']);
     expect(result!.collections).toEqual([{ id: 'col-1', name: 'React Patterns' }]);
+  });
+});
+
+describe('deleteItem', () => {
+  it('returns false when item does not belong to user', async () => {
+    mockFindFirst.mockResolvedValue(null);
+
+    const result = await deleteItem('user-1', 'item-99');
+
+    expect(result).toBe(false);
+    expect(mockDelete).not.toHaveBeenCalled();
+  });
+
+  it('deletes item and returns true when ownership check passes', async () => {
+    mockFindFirst.mockResolvedValue(baseItem as never);
+    mockDelete.mockResolvedValue(baseItem as never);
+
+    const result = await deleteItem('user-1', 'item-1');
+
+    expect(result).toBe(true);
+    expect(mockDelete).toHaveBeenCalledWith({ where: { id: 'item-1' } });
+  });
+
+  it('checks ownership with correct userId and id', async () => {
+    mockFindFirst.mockResolvedValue(baseItem as never);
+    mockDelete.mockResolvedValue(baseItem as never);
+
+    await deleteItem('user-1', 'item-1');
+
+    expect(mockFindFirst).toHaveBeenCalledWith({
+      where: { id: 'item-1', userId: 'user-1' },
+    });
   });
 });
 

@@ -8,10 +8,19 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Star, Pin, Copy, Pencil, Trash2, FolderOpen, Calendar, Save, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { ICON_MAP } from '@/lib/constants/item-types';
-import { updateItem } from '@/actions/items';
+import { updateItem, deleteItem } from '@/actions/items';
 import type { ItemDetail } from '@/lib/db/items';
 
 const CONTENT_TYPES = new Set(['snippet', 'prompt', 'command', 'note']);
@@ -122,6 +131,8 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
   const [loading, setLoading] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [editState, setEditState] = useState<EditState>({
     title: '',
     description: '',
@@ -194,12 +205,25 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
     router.refresh();
   }
 
+  async function handleDelete() {
+    if (!itemId) return;
+    setDeleting(true);
+    const result = await deleteItem(itemId);
+    setDeleting(false);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
+    }
+    setConfirmDelete(false);
+    toast.success('Item deleted');
+    router.refresh();
+    onClose();
+  }
+
   const typeName = item?.itemType.name ?? '';
   const showContent = CONTENT_TYPES.has(typeName);
   const showLanguage = LANGUAGE_TYPES.has(typeName);
   const showUrl = typeName === 'link';
-
-  const Icon = item ? ICON_MAP[item.itemType.icon] : null;
 
   const formatDate = (date: string | Date) =>
     new Date(date).toLocaleDateString('en-US', {
@@ -209,6 +233,7 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
     });
 
   return (
+    <>
     <Sheet open={!!itemId} onOpenChange={(open) => { if (!open) onClose(); }}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto flex flex-col gap-0 p-0">
         {loading || (!item && !!itemId) ? (
@@ -291,7 +316,7 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
                       <Pencil className="h-3.5 w-3.5" />
                       Edit
                     </ActionButton>
-                    <ActionButton label="Delete" variant="danger">
+                    <ActionButton label="Delete" variant="danger" onClick={() => setConfirmDelete(true)}>
                       <Trash2 className="h-3.5 w-3.5" />
                     </ActionButton>
                   </div>
@@ -477,5 +502,27 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
         ) : null}
       </SheetContent>
     </Sheet>
+
+    <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete item?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. The item will be permanently deleted.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDelete}
+            disabled={deleting}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {deleting ? 'Deleting…' : 'Delete'}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
