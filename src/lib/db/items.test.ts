@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemById } from './items';
+import { getItemById, updateItem } from './items';
 import { prisma } from '@/lib/prisma';
 
 const mockFindFirst = vi.mocked(prisma.item.findFirst);
+const mockUpdate = vi.mocked(prisma.item.update);
 
 const baseItem = {
   id: 'item-1',
@@ -28,6 +29,106 @@ const baseItem = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+const updatedItem = {
+  ...baseItem,
+  title: 'Updated Title',
+  description: 'Updated desc',
+  content: 'updated content',
+  language: 'javascript',
+  updatedAt: new Date('2024-02-01'),
+};
+
+describe('updateItem', () => {
+  it('returns null when item does not belong to user', async () => {
+    mockFindFirst.mockResolvedValue(null);
+
+    const result = await updateItem('user-1', 'item-99', {
+      title: 'New Title',
+      description: null,
+      content: null,
+      url: null,
+      language: null,
+      tags: [],
+    });
+
+    expect(result).toBeNull();
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
+  it('checks ownership with userId and id', async () => {
+    mockFindFirst.mockResolvedValue(baseItem as never);
+    mockUpdate.mockResolvedValue(updatedItem as never);
+
+    await updateItem('user-1', 'item-1', {
+      title: 'Title',
+      description: null,
+      content: null,
+      url: null,
+      language: null,
+      tags: [],
+    });
+
+    expect(mockFindFirst).toHaveBeenCalledWith({
+      where: { id: 'item-1', userId: 'user-1' },
+    });
+  });
+
+  it('calls update with correct fields and tag pattern', async () => {
+    mockFindFirst.mockResolvedValue(baseItem as never);
+    mockUpdate.mockResolvedValue(updatedItem as never);
+
+    await updateItem('user-1', 'item-1', {
+      title: 'Updated Title',
+      description: 'Updated desc',
+      content: 'updated content',
+      url: null,
+      language: 'javascript',
+      tags: ['react', 'new-tag'],
+    });
+
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'item-1' },
+        data: expect.objectContaining({
+          title: 'Updated Title',
+          description: 'Updated desc',
+          content: 'updated content',
+          language: 'javascript',
+          tags: {
+            set: [],
+            connectOrCreate: [
+              { where: { name: 'react' }, create: { name: 'react' } },
+              { where: { name: 'new-tag' }, create: { name: 'new-tag' } },
+            ],
+          },
+        }),
+      })
+    );
+  });
+
+  it('returns mapped ItemDetail on success', async () => {
+    mockFindFirst.mockResolvedValue(baseItem as never);
+    mockUpdate.mockResolvedValue(updatedItem as never);
+
+    const result = await updateItem('user-1', 'item-1', {
+      title: 'Updated Title',
+      description: 'Updated desc',
+      content: 'updated content',
+      url: null,
+      language: 'javascript',
+      tags: ['react', 'hooks'],
+    });
+
+    expect(result).not.toBeNull();
+    expect(result!.title).toBe('Updated Title');
+    expect(result!.description).toBe('Updated desc');
+    expect(result!.content).toBe('updated content');
+    expect(result!.language).toBe('javascript');
+    expect(result!.tags).toEqual(['react', 'hooks']);
+    expect(result!.collections).toEqual([{ id: 'col-1', name: 'React Patterns' }]);
+  });
 });
 
 describe('getItemById', () => {

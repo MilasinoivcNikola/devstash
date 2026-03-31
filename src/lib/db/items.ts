@@ -124,6 +124,57 @@ export async function getItemById(userId: string, id: string): Promise<ItemDetai
   };
 }
 
+export type UpdateItemData = {
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  language: string | null;
+  tags: string[];
+};
+
+export async function updateItem(userId: string, id: string, data: UpdateItemData): Promise<ItemDetail | null> {
+  const item = await prisma.item.findFirst({ where: { id, userId } });
+  if (!item) return null;
+
+  const updated = await prisma.item.update({
+    where: { id },
+    data: {
+      title: data.title,
+      description: data.description,
+      content: data.content,
+      url: data.url,
+      language: data.language,
+      tags: {
+        set: [],
+        connectOrCreate: data.tags.map((name) => ({
+          where: { name },
+          create: { name },
+        })),
+      },
+    },
+    include: {
+      ...itemInclude,
+      collections: {
+        include: { collection: { select: { id: true, name: true } } },
+      },
+    },
+  });
+
+  return {
+    ...mapItem(updated),
+    content: updated.content,
+    contentType: updated.contentType,
+    language: updated.language,
+    url: updated.url,
+    fileUrl: updated.fileUrl,
+    fileName: updated.fileName,
+    fileSize: updated.fileSize,
+    updatedAt: updated.updatedAt,
+    collections: updated.collections.map((ic) => ic.collection),
+  };
+}
+
 export async function getSidebarItemTypes(userId: string): Promise<SidebarItemType[]> {
   const types = await prisma.itemType.findMany({
     where: { isSystem: true },
