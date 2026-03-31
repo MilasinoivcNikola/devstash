@@ -2,16 +2,18 @@ import { Suspense } from 'react';
 import { signIn } from '@/auth';
 import { AuthError } from 'next-auth';
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { EMAIL_VERIFICATION_ENABLED } from '@/lib/config';
+import { checkRateLimit, getIp, rateLimiters } from '@/lib/rate-limit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { GitBranch } from 'lucide-react';
 import { RegisteredToast } from '@/components/shared/RegisteredToast';
 
 interface Props {
-  searchParams: Promise<{ error?: string; callbackUrl?: string; registered?: string; reset?: string }>;
+  searchParams: Promise<{ error?: string; callbackUrl?: string; registered?: string; reset?: string; retry?: string }>;
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -21,11 +23,21 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default async function SignInPage({ searchParams }: Props) {
-  const { error, callbackUrl = '/dashboard', reset } = await searchParams;
+  const { error, callbackUrl = '/dashboard', reset, retry } = await searchParams;
 
   async function credentialsAction(formData: FormData) {
     'use server';
     const email = formData.get('email') as string;
+    const ip = getIp(await headers());
+    const { limited, retryAfterMinutes } = await checkRateLimit(
+      rateLimiters.login,
+      `login:${ip}:${email}`,
+    );
+    if (limited) {
+      const params = new URLSearchParams({ error: 'rate_limited', retry: String(retryAfterMinutes) });
+      if (callbackUrl !== '/dashboard') params.set('callbackUrl', callbackUrl);
+      redirect(`/sign-in?${params}`);
+    }
 
     const user = await prisma.user.findUnique({ where: { email }, select: { emailVerified: true, password: true } });
     if (EMAIL_VERIFICATION_ENABLED && user?.password && !user.emailVerified) {
@@ -123,7 +135,9 @@ export default async function SignInPage({ searchParams }: Props) {
 
         {error && (
           <p className="text-sm text-destructive">
-            {ERROR_MESSAGES[error] ?? ERROR_MESSAGES.default}
+            {error === 'rate_limited'
+              ? `Too many sign-in attempts. Please try again in ${retry ?? '?'} minute${retry === '1' ? '' : 's'}.`
+              : (ERROR_MESSAGES[error] ?? ERROR_MESSAGES.default)}
           </p>
         )}
 

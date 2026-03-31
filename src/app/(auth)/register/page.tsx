@@ -2,14 +2,16 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import bcrypt from 'bcryptjs';
 import { randomBytes } from 'crypto';
+import { headers } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { sendVerificationEmail } from '@/lib/email';
 import { EMAIL_VERIFICATION_ENABLED } from '@/lib/config';
+import { checkRateLimit, getIp, rateLimiters } from '@/lib/rate-limit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 interface Props {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; retry?: string }>;
 }
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -21,7 +23,7 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 export default async function RegisterPage({ searchParams }: Props) {
-  const { error } = await searchParams;
+  const { error, retry } = await searchParams;
 
   async function registerAction(formData: FormData) {
     'use server';
@@ -29,6 +31,12 @@ export default async function RegisterPage({ searchParams }: Props) {
     const email = formData.get('email') as string;
     const password = formData.get('password') as string;
     const confirmPassword = formData.get('confirmPassword') as string;
+
+    const ip = getIp(await headers());
+    const { limited, retryAfterMinutes } = await checkRateLimit(rateLimiters.register, `register:${ip}`);
+    if (limited) {
+      redirect(`/register?error=rate_limited&retry=${retryAfterMinutes}`);
+    }
 
     if (!email || !password || !confirmPassword) {
       redirect('/register?error=missing_fields');
@@ -125,7 +133,9 @@ export default async function RegisterPage({ searchParams }: Props) {
 
         {error && (
           <p className="text-sm text-destructive">
-            {ERROR_MESSAGES[error] ?? ERROR_MESSAGES.default}
+            {error === 'rate_limited'
+              ? `Too many attempts. Please try again in ${retry ?? '?'} minute${retry === '1' ? '' : 's'}.`
+              : (ERROR_MESSAGES[error] ?? ERROR_MESSAGES.default)}
           </p>
         )}
 
