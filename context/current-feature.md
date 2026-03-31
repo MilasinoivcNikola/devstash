@@ -1,27 +1,10 @@
-# Current Feature: Rate Limiting for Auth
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Add rate limiting to all auth-related endpoints to prevent brute force and abuse
-- Create reusable `src/lib/rate-limit.ts` utility using Upstash Redis + `@upstash/ratelimit`
-- Protect 5 endpoints: credentials login, register, forgot-password, reset-password, resend-verification
-- Return 429 responses with `Retry-After` header and user-friendly error messages
-- Display rate limit errors via toast on the frontend
-- Fail open (allow request) if Upstash is unavailable
-
 ## Notes
-
-- Use sliding window algorithm for smooth limiting
-- Key by IP for most endpoints; key by IP + email for login and resend-verification
-- Extract IP from `x-forwarded-for` header (Vercel) or request
-- Login limiting with NextAuth credentials is tricky — may need custom sign-in handler
-- Upstash free tier: 10k requests/day (sufficient for auth use)
-- Add `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` to `.env.example`
-- Limits: login 5/15min, register 3/1hr, forgot-password 3/1hr, reset-password 5/15min, resend-verification 3/15min
 
 ## History
 
@@ -44,3 +27,4 @@ In Progress
 - **2026-03-30** — Fix lazy Resend client: moved `new Resend(...)` instantiation from module-level singleton (`src/lib/resend.ts`) into the `sendVerificationEmail` function body in `src/lib/email.ts`; deleted `src/lib/resend.ts`. Fixes Vercel build crash (`Missing API key`) when `RESEND_API_KEY` is not set in the environment.
 - **2026-03-30** — Forgot password flow: added `sendPasswordResetEmail` to `src/lib/email.ts`; created `/forgot-password` page (email form, silent success on unknown email, prevents enumeration); created `/reset-password` page as a Server Component + Client Component (`ResetPasswordForm` with `useActionState`) + separate `actions.ts`; token stored in `VerificationToken` with `reset:<email>` identifier namespace and 1-hour expiry; validation errors returned inline (no redirect, token never re-embedded in URLs); DB-level errors redirect without the token; added "Forgot password?" link and `?reset=1` success message to sign-in page.
 - **2026-03-30** — Profile page: created `/profile` route (auth-protected via middleware); `src/lib/db/profile.ts` with `getProfileUser` (returns `hasPassword` boolean, never exposes hash) and `getProfileStats` (total items, collections, per-type breakdown scoped to userId); profile layout reuses `DashboardShell`; page shows user info card (avatar, name, email, member since), 2-stat grid + 7-type breakdown table, and account section with `ChangePasswordForm` (collapsible, only rendered when `hasPassword` is true, uses `useActionState`) and `DeleteAccountDialog` (controlled AlertDialog with two-step confirmation); installed `alert-dialog` shadcn component (base-ui).
+- **2026-03-31** — Rate limiting for auth: installed `@upstash/ratelimit` and `@upstash/redis`; created `src/lib/rate-limit.ts` with a lazy Redis client (fails open when unconfigured), 5 sliding-window limiters, `checkRateLimit()`, and `getIp()` compatible with both API routes and Server Actions; protected sign-in (5/15min, IP+email), register (3/1hr, IP), forgot-password (3/1hr, IP), and reset-password (5/15min, IP) via Server Actions; added rate limiting to `/api/auth/register` API route; created new `/api/auth/resend-verification` endpoint (3/15min, IP+email) with silent success to prevent enumeration; updated check-email page with a client-side resend form; 429 responses include `Retry-After` header; user-friendly "Try again in X minutes" messages on all forms.
