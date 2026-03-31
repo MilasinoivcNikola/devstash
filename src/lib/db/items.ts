@@ -124,6 +124,73 @@ export async function getItemById(userId: string, id: string): Promise<ItemDetai
   };
 }
 
+const CONTENT_TYPE_MAP: Record<string, 'TEXT' | 'FILE' | 'URL'> = {
+  snippet: 'TEXT',
+  prompt: 'TEXT',
+  command: 'TEXT',
+  note: 'TEXT',
+  link: 'URL',
+  file: 'FILE',
+  image: 'FILE',
+};
+
+export type CreateItemData = {
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string | null;
+  language: string | null;
+  tags: string[];
+  itemTypeName: string;
+};
+
+export async function createItem(userId: string, data: CreateItemData): Promise<ItemDetail | null> {
+  const itemType = await prisma.itemType.findFirst({
+    where: { name: data.itemTypeName, isSystem: true },
+  });
+  if (!itemType) return null;
+
+  const contentType = CONTENT_TYPE_MAP[data.itemTypeName] ?? 'TEXT';
+
+  const created = await prisma.item.create({
+    data: {
+      title: data.title,
+      description: data.description,
+      content: data.content,
+      url: data.url,
+      language: data.language,
+      contentType,
+      userId,
+      itemTypeId: itemType.id,
+      tags: {
+        connectOrCreate: data.tags.map((name) => ({
+          where: { name },
+          create: { name },
+        })),
+      },
+    },
+    include: {
+      ...itemInclude,
+      collections: {
+        include: { collection: { select: { id: true, name: true } } },
+      },
+    },
+  });
+
+  return {
+    ...mapItem(created),
+    content: created.content,
+    contentType: created.contentType,
+    language: created.language,
+    url: created.url,
+    fileUrl: created.fileUrl,
+    fileName: created.fileName,
+    fileSize: created.fileSize,
+    updatedAt: created.updatedAt,
+    collections: created.collections.map((ic) => ic.collection),
+  };
+}
+
 export type UpdateItemData = {
   title: string;
   description: string | null;

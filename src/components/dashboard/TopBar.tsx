@@ -4,6 +4,7 @@ import { Menu, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import CreateItemDialog from "@/components/items/CreateItemDialog";
 
 interface TopBarProps {
   onSidebarOpen?: () => void;
@@ -51,9 +52,7 @@ export default function TopBar({ onSidebarOpen, logoHref = '/' }: TopBarProps) {
         <Button variant="outline" size="sm">
           New Collection
         </Button>
-        <Button size="sm">
-          + New Item
-        </Button>
+        <CreateItemDialog />
       </div>
     </header>
   );
