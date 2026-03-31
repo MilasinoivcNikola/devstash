@@ -1,30 +1,10 @@
-# Current Feature: Item Drawer — Edit Mode
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Edit button in the item drawer action bar toggles inline edit mode (same drawer stays open)
-- In edit mode, action bar is replaced with Save and Cancel buttons
-- Cancel discards changes and returns to view mode
-- Save persists changes via `updateItem` server action, returns to view mode, refreshes drawer data, and shows a toast
-- Editable fields for all types: Title (required), Description (optional), Tags (comma-separated input)
-- Type-specific fields: Content (snippet/prompt/command/note), Language (snippet/command), URL (link)
-- Non-editable in edit mode: item type, collections, created/updated dates
-- `updateItem(itemId, data)` server action in `src/actions/items.ts` with Zod validation and ownership check
-- `updateItem` query in `src/lib/db/items.ts` with tag disconnect-all + connect-or-create pattern
-- Returns updated `ItemDetail` so drawer refreshes without a second fetch
-- After save, call `router.refresh()` to update the underlying card list
-
 ## Notes
-
-- No form library — use controlled inputs with local state
-- Disable Save button when title is empty (client-side guard)
-- Zod schema is source of truth for validation; return errors in `{ success: false, error }` format
-- Content textarea is plain text (no code editor yet)
-- Collections management is out of scope for this feature
 
 ## History
 
@@ -52,3 +32,4 @@ In Progress
 - **2026-03-31** — Items list view: added dynamic route `/items/[type]` (e.g., `/items/snippets`) with DashboardShell layout; `getItemsByType(userId, typeName)` query in `src/lib/db/items.ts`; responsive 2-column grid of ItemCards with colored left borders; invalid types return 404; empty state shown when no items exist.
 - **2026-03-31** — Item list 3-column layout: updated `/items/[type]` grid from `grid-cols-1 md:grid-cols-2` to `grid-cols-1 md:grid-cols-2 xl:grid-cols-3`; widened max-width from `max-w-5xl` to `max-w-7xl` to accommodate 3 columns on xl screens (≥1280px).
 - **2026-03-31** — Item drawer: added right-side slide-in Sheet drawer that opens on ItemCard click on both dashboard and items list pages; `getItemById` query in `src/lib/db/items.ts` returns full item detail including collections; `GET /api/items/[id]` API route with auth check; `ItemDrawer` client component with skeleton loading state, action bar (Favorite/Pin/Copy/Edit/Delete), and sections for description, content (with line numbers), URL, tags, collections, and created/updated dates; `ItemsClientWrapper` manages drawer state so pages remain server components; DevStash logo now links to `/dashboard` for authenticated users and `/` otherwise; added `findFirst` to Prisma item mock and 6 unit tests for `getItemById`.
+- **2026-03-31** — Item drawer edit mode: Edit button toggles the drawer inline into edit mode; action bar replaced with Save/Cancel buttons; Title, Description, Tags editable for all types; Content (snippet/prompt/command/note), Language (snippet/command), URL (link) shown conditionally; `updateItem` server action in `src/actions/items.ts` (Zod v4 validation, ownership check, `{ success, data | error }` pattern); `updateItem` DB query in `src/lib/db/items.ts` (tag `set: [] / connectOrCreate` pattern, returns `ItemDetail`); Save disabled when title empty; `router.refresh()` called after save to sync card list; 11 new unit tests (4 DB query, 7 server action).
