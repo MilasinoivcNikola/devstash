@@ -24,7 +24,7 @@ export default function DashboardShell({ children, itemTypes, sidebarCollections
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-x-hidden bg-background text-foreground">
-      <TopBar onSidebarOpen={() => setSidebarOpen(true)} />
+      <TopBar onSidebarOpen={() => setSidebarOpen(true)} logoHref={user ? '/dashboard' : '/'} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
           isOpen={sidebarOpen}

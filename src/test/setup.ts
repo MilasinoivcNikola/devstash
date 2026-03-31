@@ -36,7 +36,7 @@ vi.mock("@/auth", () => ({
 
 // Mock Prisma
 vi.mock("@/lib/prisma", () => ({
-  default: {
+  prisma: {
     user: {
       findUnique: vi.fn(),
       findFirst: vi.fn(),
@@ -47,6 +47,7 @@ vi.mock("@/lib/prisma", () => ({
     item: {
       findMany: vi.fn(),
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
       delete: vi.fn(),
