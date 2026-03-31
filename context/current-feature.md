@@ -1,25 +1,10 @@
-# Current Feature: Item Drawer
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
 
-- Right-side slide-in drawer using shadcn Sheet component opens when clicking an ItemCard
-- Works on both dashboard and items list pages
-- Shows full item detail (title, description, tags, collections, language, content preview placeholder)
-- Action bar with Favorite (star, yellow when active), Pin, Copy, Edit (pencil), and Delete (trash, right-aligned)
-- Client wrapper component manages drawer state (pages remain server components)
-- Full item detail fetched on click via `/api/items/[id]` (no page navigation)
-- Drawer shows skeleton/loading state while fetching
-
 ## Notes
-
-- Card data continues to be fetched by server components as before
-- Query function for full item detail goes in `src/lib/db/items.ts`; API route calls it with auth check
-- No code editor or item-specific editing UI yet — detail display only
-- Reference: `context/screenshots/dashboard-ui-drawer.png`
 
 ## History
 
@@ -46,3 +31,4 @@ In Progress
 - **2026-03-31** — Scope data to logged-in user: all DB query functions in `src/lib/db/items.ts` (`getPinnedItems`, `getRecentItems`, `getItemStats`, `getSidebarItemTypes`) and `src/lib/db/collections.ts` (`getRecentCollections`, `getCollectionStats`, `getSidebarCollections`) now require a `userId` parameter and filter results to that user only; dashboard page calls `auth()` and passes `userId` to all queries; dashboard layout and profile layout do the same for sidebar data; `getSidebarItemTypes` nested count filtered by `userId`.
 - **2026-03-31** — Items list view: added dynamic route `/items/[type]` (e.g., `/items/snippets`) with DashboardShell layout; `getItemsByType(userId, typeName)` query in `src/lib/db/items.ts`; responsive 2-column grid of ItemCards with colored left borders; invalid types return 404; empty state shown when no items exist.
 - **2026-03-31** — Item list 3-column layout: updated `/items/[type]` grid from `grid-cols-1 md:grid-cols-2` to `grid-cols-1 md:grid-cols-2 xl:grid-cols-3`; widened max-width from `max-w-5xl` to `max-w-7xl` to accommodate 3 columns on xl screens (≥1280px).
+- **2026-03-31** — Item drawer: added right-side slide-in Sheet drawer that opens on ItemCard click on both dashboard and items list pages; `getItemById` query in `src/lib/db/items.ts` returns full item detail including collections; `GET /api/items/[id]` API route with auth check; `ItemDrawer` client component with skeleton loading state, action bar (Favorite/Pin/Copy/Edit/Delete), and sections for description, content (with line numbers), URL, tags, collections, and created/updated dates; `ItemsClientWrapper` manages drawer state so pages remain server components; DevStash logo now links to `/dashboard` for authenticated users and `/` otherwise; added `findFirst` to Prisma item mock and 6 unit tests for `getItemById`.
