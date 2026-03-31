@@ -8,13 +8,17 @@ export default async function ProfileLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [itemTypes, sidebarCollections, session] = await Promise.all([
-    getSidebarItemTypes(),
-    getSidebarCollections(),
-    auth(),
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) return null;
+
+  const [itemTypes, sidebarCollections] = await Promise.all([
+    getSidebarItemTypes(userId),
+    getSidebarCollections(userId),
   ]);
 
-  const user = session?.user ?? null;
+  const user = session.user ?? null;
 
   return (
     <DashboardShell itemTypes={itemTypes} sidebarCollections={sidebarCollections} user={user}>

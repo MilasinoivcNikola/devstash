@@ -43,17 +43,18 @@ const itemInclude = {
   tags: { select: { name: true } },
 } as const;
 
-export async function getPinnedItems(): Promise<ItemWithMeta[]> {
+export async function getPinnedItems(userId: string): Promise<ItemWithMeta[]> {
   const items = await prisma.item.findMany({
-    where: { isPinned: true },
+    where: { userId, isPinned: true },
     include: itemInclude,
     orderBy: { createdAt: 'desc' },
   });
   return items.map(mapItem);
 }
 
-export async function getRecentItems(limit = 10): Promise<ItemWithMeta[]> {
+export async function getRecentItems(userId: string, limit = 10): Promise<ItemWithMeta[]> {
   const items = await prisma.item.findMany({
+    where: { userId },
     include: itemInclude,
     orderBy: { createdAt: 'desc' },
     take: limit,
@@ -61,10 +62,10 @@ export async function getRecentItems(limit = 10): Promise<ItemWithMeta[]> {
   return items.map(mapItem);
 }
 
-export async function getItemStats() {
+export async function getItemStats(userId: string) {
   const [total, favorites] = await Promise.all([
-    prisma.item.count(),
-    prisma.item.count({ where: { isFavorite: true } }),
+    prisma.item.count({ where: { userId } }),
+    prisma.item.count({ where: { userId, isFavorite: true } }),
   ]);
   return { total, favorites };
 }
@@ -77,10 +78,10 @@ export type SidebarItemType = {
   count: number;
 };
 
-export async function getSidebarItemTypes(): Promise<SidebarItemType[]> {
+export async function getSidebarItemTypes(userId: string): Promise<SidebarItemType[]> {
   const types = await prisma.itemType.findMany({
     where: { isSystem: true },
-    include: { _count: { select: { items: true } } },
+    include: { _count: { select: { items: { where: { userId } } } } },
   });
   return types.map((t) => ({
     id: t.id,

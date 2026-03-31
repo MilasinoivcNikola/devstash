@@ -10,8 +10,9 @@ export type CollectionWithMeta = {
   dominantColor: string;
 };
 
-export async function getRecentCollections(): Promise<CollectionWithMeta[]> {
+export async function getRecentCollections(userId: string): Promise<CollectionWithMeta[]> {
   const collections = await prisma.collection.findMany({
+    where: { userId },
     include: {
       items: {
         include: {
@@ -69,10 +70,10 @@ export async function getRecentCollections(): Promise<CollectionWithMeta[]> {
   });
 }
 
-export async function getCollectionStats() {
+export async function getCollectionStats(userId: string) {
   const [total, favorites] = await Promise.all([
-    prisma.collection.count(),
-    prisma.collection.count({ where: { isFavorite: true } }),
+    prisma.collection.count({ where: { userId } }),
+    prisma.collection.count({ where: { userId, isFavorite: true } }),
   ]);
   return { total, favorites };
 }
@@ -84,11 +85,12 @@ export type SidebarCollection = {
   dominantColor: string;
 };
 
-export async function getSidebarCollections(): Promise<{
+export async function getSidebarCollections(userId: string): Promise<{
   favorites: SidebarCollection[];
   recent: SidebarCollection[];
 }> {
   const collections = await prisma.collection.findMany({
+    where: { userId },
     include: {
       items: {
         include: {

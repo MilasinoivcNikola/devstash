@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { ICON_MAP } from '@/lib/constants/item-types';
+import { auth } from '@/auth';
+import { redirect } from 'next/navigation';
 
 function formatDate(date: Date) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -129,12 +131,17 @@ function ItemCard({ item }: { item: ItemWithMeta }) {
 }
 
 export default async function DashboardPage() {
+  const session = await auth();
+  const userId = session?.user?.id;
+
+  if (!userId) redirect('/sign-in');
+
   const [collections, collectionStats, itemStats, pinnedItems, recentItems] = await Promise.all([
-    getRecentCollections(),
-    getCollectionStats(),
-    getItemStats(),
-    getPinnedItems(),
-    getRecentItems(),
+    getRecentCollections(userId),
+    getCollectionStats(userId),
+    getItemStats(userId),
+    getPinnedItems(userId),
+    getRecentItems(userId),
   ]);
 
   return (
