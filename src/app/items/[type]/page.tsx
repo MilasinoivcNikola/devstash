@@ -2,8 +2,10 @@ import { getItemsByType } from '@/lib/db/items';
 import { auth } from '@/auth';
 import { redirect, notFound } from 'next/navigation';
 import { ItemsGridWrapper } from '@/components/items/ItemsClientWrapper';
+import CreateItemDialog from '@/components/items/CreateItemDialog';
 
 const VALID_TYPES = ['snippet', 'prompt', 'command', 'note', 'file', 'image', 'link'] as const;
+const CREATABLE_TYPES = new Set(['snippet', 'prompt', 'command', 'note', 'link']);
 
 export default async function ItemsTypePage({
   params,
@@ -27,9 +29,17 @@ export default async function ItemsTypePage({
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground capitalize">{typeSlug}</h1>
-        <p className="text-sm text-muted-foreground mt-0.5">{items.length} item{items.length !== 1 ? 's' : ''}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground capitalize">{typeSlug}</h1>
+          <p className="text-sm text-muted-foreground mt-0.5">{items.length} item{items.length !== 1 ? 's' : ''}</p>
+        </div>
+        {CREATABLE_TYPES.has(typeName) && (
+          <CreateItemDialog
+            defaultType={typeName as 'snippet' | 'prompt' | 'command' | 'note' | 'link'}
+            triggerLabel={`New ${typeName.charAt(0).toUpperCase() + typeName.slice(1)}`}
+          />
+        )}
       </div>
 
       {items.length === 0 ? (

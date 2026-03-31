@@ -60,10 +60,15 @@ const EMPTY_FORM: FormState = {
   tags: '',
 };
 
-export default function CreateItemDialog() {
+interface CreateItemDialogProps {
+  defaultType?: TypeName;
+  triggerLabel?: string;
+}
+
+export default function CreateItemDialog({ defaultType, triggerLabel }: CreateItemDialogProps = {}) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [selectedType, setSelectedType] = useState<TypeName>('snippet');
+  const [selectedType, setSelectedType] = useState<TypeName>(defaultType ?? 'snippet');
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
@@ -74,7 +79,7 @@ export default function CreateItemDialog() {
   function handleOpenChange(next: boolean) {
     if (!next) {
       setForm(EMPTY_FORM);
-      setSelectedType('snippet');
+      setSelectedType(defaultType ?? 'snippet');
     }
     setOpen(next);
   }
@@ -122,7 +127,7 @@ export default function CreateItemDialog() {
     <>
       <Button size="sm" onClick={() => setOpen(true)}>
         <Plus className="h-4 w-4 mr-1" />
-        New Item
+        {triggerLabel ?? 'New Item'}
       </Button>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
