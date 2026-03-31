@@ -78,6 +78,15 @@ export type SidebarItemType = {
   count: number;
 };
 
+export async function getItemsByType(userId: string, typeName: string): Promise<ItemWithMeta[]> {
+  const items = await prisma.item.findMany({
+    where: { userId, itemType: { name: typeName } },
+    include: itemInclude,
+    orderBy: { createdAt: 'desc' },
+  });
+  return items.map(mapItem);
+}
+
 export async function getSidebarItemTypes(userId: string): Promise<SidebarItemType[]> {
   const types = await prisma.itemType.findMany({
     where: { isSystem: true },
