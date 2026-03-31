@@ -24,11 +24,21 @@ Key behavioral changes in Next.js 16:
 ## Commands
 
 ```bash
-npm run dev       # Start dev server (Turbopack)
-npm run build     # Production build
-npm run start     # Start production server
-npm run lint      # Run ESLint
+npm run dev           # Start dev server (Turbopack)
+npm run build         # Production build
+npm run start         # Start production server
+npm run lint          # Run ESLint
+npm run test          # Run tests in watch mode
+npm run test:run      # Run tests once
+npm run test:coverage # Run tests with coverage report
 ```
+
+## Testing
+
+- Use Vitest for unit tests
+- Only test server actions and utility functions — no component tests
+- Test files live alongside the source file: `src/lib/foo.test.ts`, `src/app/x/actions.test.ts`
+- Mock Prisma, `next/headers`, `next/navigation`, `next/cache`, and `@/auth` are pre-configured in `src/test/setup.ts`
 
 ## Neon MCP
 
