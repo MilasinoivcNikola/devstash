@@ -1,8 +1,10 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { checkRateLimit, getIp, rateLimiters } from '@/lib/rate-limit';
 
 export async function resetPasswordAction(
   _prevState: string | null,
@@ -11,6 +13,15 @@ export async function resetPasswordAction(
   const token = formData.get('token') as string;
   const password = formData.get('password') as string;
   const confirmPassword = formData.get('confirmPassword') as string;
+
+  const ip = getIp(await headers());
+  const { limited, retryAfterMinutes } = await checkRateLimit(
+    rateLimiters.resetPassword,
+    `reset-password:${ip}`,
+  );
+  if (limited) {
+    return `Too many attempts. Please try again in ${retryAfterMinutes} minute${retryAfterMinutes === 1 ? '' : 's'}.`;
+  }
 
   // Validate inputs — return error string (shown inline, no redirect)
   if (password !== confirmPassword) return 'Passwords do not match.';

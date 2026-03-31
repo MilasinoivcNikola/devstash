@@ -1,17 +1,19 @@
 import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { randomBytes } from 'crypto';
 import { prisma } from '@/lib/prisma';
 import { sendPasswordResetEmail } from '@/lib/email';
+import { checkRateLimit, getIp, rateLimiters } from '@/lib/rate-limit';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 interface Props {
-  searchParams: Promise<{ sent?: string }>;
+  searchParams: Promise<{ sent?: string; error?: string; retry?: string }>;
 }
 
 export default async function ForgotPasswordPage({ searchParams }: Props) {
-  const { sent } = await searchParams;
+  const { sent, error, retry } = await searchParams;
 
   async function forgotPasswordAction(formData: FormData) {
     'use server';
@@ -19,6 +21,15 @@ export default async function ForgotPasswordPage({ searchParams }: Props) {
 
     if (!email) {
       redirect('/forgot-password');
+    }
+
+    const ip = getIp(await headers());
+    const { limited, retryAfterMinutes } = await checkRateLimit(
+      rateLimiters.forgotPassword,
+      `forgot-password:${ip}`,
+    );
+    if (limited) {
+      redirect(`/forgot-password?error=rate_limited&retry=${retryAfterMinutes}`);
     }
 
     const user = await prisma.user.findUnique({
@@ -95,6 +106,12 @@ export default async function ForgotPasswordPage({ searchParams }: Props) {
             required
           />
         </div>
+
+        {error === 'rate_limited' && (
+          <p className="text-sm text-destructive">
+            Too many attempts. Please try again in {retry ?? '?'} minute{retry === '1' ? '' : 's'}.
+          </p>
+        )}
 
         <Button type="submit" className="w-full">Send reset link</Button>
       </form>
