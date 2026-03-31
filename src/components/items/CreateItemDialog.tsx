@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { createItem } from '@/actions/items';
+import CodeEditor from '@/components/items/CodeEditor';
 
 const TYPES = [
   { name: 'snippet', label: 'Snippet', icon: Code, color: '#3b82f6' },
@@ -196,13 +197,21 @@ export default function CreateItemDialog() {
             {showContent && (
               <div>
                 <FieldLabel>Content</FieldLabel>
-                <textarea
-                  className={`${inputClass(true)} font-mono text-xs`}
-                  rows={8}
-                  value={form.content}
-                  onChange={set('content')}
-                  placeholder="Content"
-                />
+                {showLanguage ? (
+                  <CodeEditor
+                    value={form.content}
+                    onChange={(val) => setForm((s) => ({ ...s, content: val }))}
+                    language={form.language}
+                  />
+                ) : (
+                  <textarea
+                    className={`${inputClass(true)} font-mono text-xs`}
+                    rows={8}
+                    value={form.content}
+                    onChange={set('content')}
+                    placeholder="Content"
+                  />
+                )}
               </div>
             )}
 

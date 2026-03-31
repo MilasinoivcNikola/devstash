@@ -22,6 +22,7 @@ import { Star, Pin, Copy, Pencil, Trash2, FolderOpen, Calendar, Save, X } from '
 import { toast } from 'sonner';
 import { updateItem, deleteItem } from '@/actions/items';
 import type { ItemDetail } from '@/lib/db/items';
+import CodeEditor from '@/components/items/CodeEditor';
 
 const CONTENT_TYPES = new Set(['snippet', 'prompt', 'command', 'note']);
 const LANGUAGE_TYPES = new Set(['snippet', 'command']);
@@ -344,13 +345,21 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
                   {showContent && (
                     <section>
                       <FieldLabel>Content</FieldLabel>
-                      <textarea
-                        className={`${inputClass(true)} font-mono text-xs`}
-                        rows={20}
-                        value={editState.content}
-                        onChange={(e) => setEditState((s) => ({ ...s, content: e.target.value }))}
-                        placeholder="Content"
-                      />
+                      {showLanguage ? (
+                        <CodeEditor
+                          value={editState.content}
+                          onChange={(val) => setEditState((s) => ({ ...s, content: val }))}
+                          language={editState.language}
+                        />
+                      ) : (
+                        <textarea
+                          className={`${inputClass(true)} font-mono text-xs`}
+                          rows={10}
+                          value={editState.content}
+                          onChange={(e) => setEditState((s) => ({ ...s, content: e.target.value }))}
+                          placeholder="Content"
+                        />
+                      )}
                     </section>
                   )}
 
@@ -407,25 +416,33 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
                   {item.content && (
                     <section>
                       <FieldLabel>Content</FieldLabel>
-                      <div className="rounded-md overflow-hidden border border-border max-h-96 overflow-y-auto">
-                        <div className="flex min-w-0">
-                          <div
-                            className="select-none text-right pr-3 pl-3 py-4 text-xs font-mono leading-5 shrink-0"
-                            style={{ color: 'hsl(var(--muted-foreground) / 0.4)', backgroundColor: 'hsl(var(--muted) / 0.6)' }}
-                            aria-hidden
-                          >
-                            {item.content.split('\n').map((_, i) => (
-                              <div key={i}>{i + 1}</div>
-                            ))}
+                      {showLanguage ? (
+                        <CodeEditor
+                          value={item.content}
+                          language={item.language ?? undefined}
+                          readOnly
+                        />
+                      ) : (
+                        <div className="rounded-md overflow-hidden border border-border max-h-96 overflow-y-auto">
+                          <div className="flex min-w-0">
+                            <div
+                              className="select-none text-right pr-3 pl-3 py-4 text-xs font-mono leading-5 shrink-0"
+                              style={{ color: 'hsl(var(--muted-foreground) / 0.4)', backgroundColor: 'hsl(var(--muted) / 0.6)' }}
+                              aria-hidden
+                            >
+                              {item.content.split('\n').map((_, i) => (
+                                <div key={i}>{i + 1}</div>
+                              ))}
+                            </div>
+                            <pre
+                              className="flex-1 py-4 pr-4 pl-3 text-xs font-mono leading-5 text-foreground overflow-x-auto whitespace-pre"
+                              style={{ backgroundColor: 'hsl(var(--muted) / 0.35)' }}
+                            >
+                              {item.content}
+                            </pre>
                           </div>
-                          <pre
-                            className="flex-1 py-4 pr-4 pl-3 text-xs font-mono leading-5 text-foreground overflow-x-auto whitespace-pre"
-                            style={{ backgroundColor: 'hsl(var(--muted) / 0.35)' }}
-                          >
-                            {item.content}
-                          </pre>
                         </div>
-                      </div>
+                      )}
                     </section>
                   )}
 
