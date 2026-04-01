@@ -10,6 +10,43 @@ function formatDate(date: Date | string) {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+function ImageThumbnailCard({
+  item,
+  onClick,
+}: {
+  item: ItemWithMeta;
+  onClick: () => void;
+}) {
+  const src = item.fileUrl ? `/api/download?key=${encodeURIComponent(item.fileUrl)}` : null;
+
+  return (
+    <button
+      onClick={onClick}
+      className="group bg-card border border-border rounded-lg overflow-hidden w-full text-left cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <div className="aspect-video overflow-hidden bg-muted">
+        {src ? (
+          <img
+            src={src}
+            alt={item.title}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
+            No image
+          </div>
+        )}
+      </div>
+      <div className="px-3 py-2">
+        <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
+        {item.description && (
+          <p className="text-xs text-muted-foreground truncate mt-0.5">{item.description}</p>
+        )}
+      </div>
+    </button>
+  );
+}
+
 function ClickableItemCard({
   item,
   onClick,
@@ -78,7 +115,7 @@ function ClickableItemCard({
 interface ItemsGridWrapperProps {
   items: ItemWithMeta[];
   showTypeBadge?: boolean;
-  layout?: 'grid' | 'list';
+  layout?: 'grid' | 'list' | 'gallery';
 }
 
 export function ItemsGridWrapper({ items, showTypeBadge, layout = 'grid' }: ItemsGridWrapperProps) {
@@ -88,19 +125,29 @@ export function ItemsGridWrapper({ items, showTypeBadge, layout = 'grid' }: Item
     <>
       <div
         className={
-          layout === 'grid'
+          layout === 'gallery'
+            ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3'
+            : layout === 'grid'
             ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3'
             : 'flex flex-col gap-3'
         }
       >
-        {items.map((item) => (
-          <ClickableItemCard
-            key={item.id}
-            item={item}
-            showTypeBadge={showTypeBadge}
-            onClick={() => setActiveItemId(item.id)}
-          />
-        ))}
+        {items.map((item) =>
+          layout === 'gallery' ? (
+            <ImageThumbnailCard
+              key={item.id}
+              item={item}
+              onClick={() => setActiveItemId(item.id)}
+            />
+          ) : (
+            <ClickableItemCard
+              key={item.id}
+              item={item}
+              showTypeBadge={showTypeBadge}
+              onClick={() => setActiveItemId(item.id)}
+            />
+          )
+        )}
       </div>
       <ItemDrawer itemId={activeItemId} onClose={() => setActiveItemId(null)} />
     </>
