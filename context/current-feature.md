@@ -1,17 +1,8 @@
-# Current Feature: File List View
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
-
-- Single-column list layout for `/items/files` (like Google Drive/Dropbox)
-- Each row shows: file icon (by extension), file name, file size, upload date, download button
-- Row hover highlight
-- Click row opens ItemDrawer
-- Download button triggers direct download (stop propagation)
-- Responsive: stack info vertically on mobile
 
 ## Notes
 
@@ -48,3 +39,4 @@ In Progress
 - **2026-04-01** — Markdown editor: installed `react-markdown` and `remark-gfm`; created `MarkdownEditor` component (`src/components/items/MarkdownEditor.tsx`) with Write/Preview tabs, copy button, and dark theme styling (`bg-[#1e1e1e]` container, `bg-[#2d2d2d]` header) matching `CodeEditor`; replaced textarea with `MarkdownEditor` for note/prompt types in `CreateItemDialog` and `ItemDrawer` (edit mode and readonly view mode); readonly mode shows Preview tab only; added `.markdown-preview` CSS to `globals.css` for headings, code blocks, inline code, lists, blockquotes, links, and tables.
 - **2026-04-01** — File & image upload with Cloudflare R2: installed `@aws-sdk/client-s3`; created `src/lib/r2.ts` (lazy S3 client + `deleteFromR2`); `POST /api/upload` validates MIME type and size (images 5 MB, files 10 MB), uploads to R2 with `uploads/{userId}/{uuid}.{ext}` key format; `GET /api/download` is an ownership-validated proxy (inline for images, attachment for files); `FileUpload` component (`src/components/items/FileUpload.tsx`) with drag-and-drop, XHR progress bar, image preview via object URL, and file info display; `CreateItemDialog` extended with file/image type buttons and `FileUpload`; `ItemDrawer` shows image preview, file info card, and download button; `deleteItem` cleans up R2 after DB deletion; `deleteItem` DB function updated to return `{ deleted, fileUrl }`; tests updated accordingly.
 - **2026-04-01** — Image gallery view: added `ImageThumbnailCard` component to `ItemsClientWrapper.tsx` with 16:9 `aspect-video` thumbnails, `object-cover`, and 5% hover scale in 300ms; added `gallery` layout option to `ItemsGridWrapper`; `/items/images` now renders the gallery layout; exposed `fileUrl` on `ItemWithMeta` type so thumbnails load via `/api/download` proxy.
+- **2026-04-01** — File list view: `/items/files` now renders a single-column list (Google Drive style); added `fileName` and `fileSize` to `ItemWithMeta` type and `mapItem`; `FileListRow` component shows extension-based file icon (`FileImage`, `FileVideo`, `FileAudio`, `FileArchive`, `FileCode`, `FileText`, generic `File`), file name, formatted size (B/KB/MB), upload date, and a download button (stops propagation); size and date stack vertically on mobile; added `'file-list'` layout option to `ItemsGridWrapper`.
