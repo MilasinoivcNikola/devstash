@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemById, updateItem, deleteItem, createItem } from './items';
+import { getItemById, updateItem, deleteItem, createItem, getItemsByCollection } from './items';
 import { prisma } from '@/lib/prisma';
 
 const mockFindFirst = vi.mocked(prisma.item.findFirst);
+const mockFindMany = vi.mocked(prisma.item.findMany);
 const mockUpdate = vi.mocked(prisma.item.update);
 const mockDelete = vi.mocked(prisma.item.delete);
 const mockTransaction = vi.mocked(prisma.$transaction);
@@ -351,5 +352,35 @@ describe('getItemById', () => {
     expect(result!.content).toBeNull();
     expect(result!.language).toBeNull();
     expect(result!.url).toBeNull();
+  });
+});
+
+describe('getItemsByCollection', () => {
+  it('returns items filtered by collection and user', async () => {
+    mockFindMany.mockResolvedValue([baseItem] as never);
+
+    const result = await getItemsByCollection('user-1', 'col-1');
+
+    expect(result).toHaveLength(1);
+    expect(result[0].title).toBe('useAuth Hook');
+    expect(mockFindMany).toHaveBeenCalledWith({
+      where: {
+        userId: 'user-1',
+        collections: { some: { collectionId: 'col-1' } },
+      },
+      include: expect.objectContaining({
+        itemType: true,
+        tags: expect.any(Object),
+      }),
+      orderBy: { createdAt: 'desc' },
+    });
+  });
+
+  it('returns empty array when collection has no items', async () => {
+    mockFindMany.mockResolvedValue([] as never);
+
+    const result = await getItemsByCollection('user-1', 'col-1');
+
+    expect(result).toEqual([]);
   });
 });

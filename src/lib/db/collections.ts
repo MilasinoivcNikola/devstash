@@ -131,6 +131,78 @@ export async function getUserCollections(userId: string): Promise<CollectionOpti
   });
 }
 
+export async function getAllCollections(userId: string): Promise<CollectionWithMeta[]> {
+  const collections = await prisma.collection.findMany({
+    where: { userId },
+    include: {
+      items: {
+        take: 50,
+        include: {
+          item: {
+            include: {
+              itemType: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+
+  return collections.map((collection) => {
+    const itemCount = collection.items.length;
+
+    const typeCounts = new Map<
+      string,
+      { id: string; name: string; icon: string; color: string; count: number }
+    >();
+
+    for (const { item } of collection.items) {
+      const key = item.itemTypeId;
+      const existing = typeCounts.get(key);
+      if (existing) {
+        existing.count++;
+      } else {
+        typeCounts.set(key, {
+          id: item.itemType.id,
+          name: item.itemType.name,
+          icon: item.itemType.icon,
+          color: item.itemType.color,
+          count: 1,
+        });
+      }
+    }
+
+    const types = Array.from(typeCounts.values())
+      .sort((a, b) => b.count - a.count)
+      .map(({ id, name, icon, color }) => ({ id, name, icon, color }));
+
+    const dominantColor = types[0]?.color ?? '#6b7280';
+
+    return {
+      id: collection.id,
+      name: collection.name,
+      description: collection.description,
+      isFavorite: collection.isFavorite,
+      itemCount,
+      types,
+      dominantColor,
+    };
+  });
+}
+
+export async function getCollectionById(userId: string, collectionId: string) {
+  return prisma.collection.findFirst({
+    where: { id: collectionId, userId },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      isFavorite: true,
+    },
+  });
+}
+
 export async function getSidebarCollections(userId: string): Promise<{
   favorites: SidebarCollection[];
   recent: SidebarCollection[];

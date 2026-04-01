@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getRecentCollections, getSidebarCollections, createCollection, getUserCollections } from './collections';
+import { getRecentCollections, getSidebarCollections, createCollection, getUserCollections, getAllCollections, getCollectionById } from './collections';
 import { prisma } from '@/lib/prisma';
 
 const mockCollectionFindMany = vi.mocked(prisma.collection.findMany);
 const mockCollectionCreate = vi.mocked(prisma.collection.create);
+const mockCollectionFindFirst = vi.mocked(prisma.collection.findFirst);
 
 const snippetType = { id: 'type-1', name: 'snippet', icon: 'Code', color: '#3b82f6' };
 const promptType = { id: 'type-2', name: 'prompt', icon: 'Sparkles', color: '#8b5cf6' };
@@ -207,5 +208,73 @@ describe('getUserCollections', () => {
     const result = await getUserCollections('user-1');
 
     expect(result).toEqual([]);
+  });
+});
+
+describe('getAllCollections', () => {
+  it('returns all collections without take limit', async () => {
+    mockCollectionFindMany.mockResolvedValue([
+      makeCollection({ id: 'col-1', name: 'First' }),
+      makeCollection({ id: 'col-2', name: 'Second' }),
+    ] as never);
+
+    const result = await getAllCollections('user-1');
+
+    expect(result).toHaveLength(2);
+    expect(result[0].name).toBe('First');
+    expect(result[1].name).toBe('Second');
+    expect(mockCollectionFindMany).toHaveBeenCalledWith(
+      expect.not.objectContaining({ take: expect.any(Number) }),
+    );
+  });
+
+  it('computes type metadata the same as getRecentCollections', async () => {
+    mockCollectionFindMany.mockResolvedValue([makeCollection()] as never);
+
+    const result = await getAllCollections('user-1');
+
+    expect(result[0].itemCount).toBe(3);
+    expect(result[0].dominantColor).toBe('#3b82f6');
+    expect(result[0].types[0].name).toBe('snippet');
+  });
+
+  it('returns empty array when user has no collections', async () => {
+    mockCollectionFindMany.mockResolvedValue([] as never);
+
+    const result = await getAllCollections('user-1');
+
+    expect(result).toEqual([]);
+  });
+});
+
+describe('getCollectionById', () => {
+  it('returns collection when found and owned by user', async () => {
+    mockCollectionFindFirst.mockResolvedValue({
+      id: 'col-1',
+      name: 'React Patterns',
+      description: 'Useful patterns',
+      isFavorite: true,
+    } as never);
+
+    const result = await getCollectionById('user-1', 'col-1');
+
+    expect(result).toEqual({
+      id: 'col-1',
+      name: 'React Patterns',
+      description: 'Useful patterns',
+      isFavorite: true,
+    });
+    expect(mockCollectionFindFirst).toHaveBeenCalledWith({
+      where: { id: 'col-1', userId: 'user-1' },
+      select: { id: true, name: true, description: true, isFavorite: true },
+    });
+  });
+
+  it('returns null when collection not found', async () => {
+    mockCollectionFindFirst.mockResolvedValue(null);
+
+    const result = await getCollectionById('user-1', 'nonexistent');
+
+    expect(result).toBeNull();
   });
 });

@@ -102,6 +102,18 @@ export async function getItemsByType(userId: string, typeName: string): Promise<
   return items.map(mapItem);
 }
 
+export async function getItemsByCollection(userId: string, collectionId: string): Promise<ItemWithMeta[]> {
+  const items = await prisma.item.findMany({
+    where: {
+      userId,
+      collections: { some: { collectionId } },
+    },
+    include: itemInclude,
+    orderBy: { createdAt: 'desc' },
+  });
+  return items.map(mapItem);
+}
+
 export type ItemDetail = ItemWithMeta & {
   content: string | null;
   contentType: string;

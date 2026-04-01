@@ -39,8 +39,9 @@ function StatCard({
 
 function CollectionCard({ collection }: { collection: CollectionWithMeta }) {
   return (
-    <div
-      className="bg-card border border-border rounded-lg p-4 flex flex-col gap-2 border-l-[3px]"
+    <Link
+      href={`/collections/${collection.id}`}
+      className="bg-card border border-border rounded-lg p-4 flex flex-col gap-2 border-l-[3px] hover:bg-accent/50 transition-colors"
       style={{ borderLeftColor: collection.dominantColor }}
     >
       <div className="flex items-center justify-between">
@@ -52,9 +53,9 @@ function CollectionCard({ collection }: { collection: CollectionWithMeta }) {
             <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400 shrink-0" />
           )}
         </div>
-        <button className="text-muted-foreground hover:text-foreground shrink-0 ml-2">
+        <span className="text-muted-foreground shrink-0 ml-2">
           <MoreHorizontal className="h-4 w-4" />
-        </button>
+        </span>
       </div>
       <p className="text-xs text-muted-foreground">{collection.itemCount} items</p>
       {collection.description && (
@@ -70,7 +71,7 @@ function CollectionCard({ collection }: { collection: CollectionWithMeta }) {
           })}
         </div>
       )}
-    </div>
+    </Link>
   );
 }
 
