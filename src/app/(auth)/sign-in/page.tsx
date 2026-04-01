@@ -22,12 +22,17 @@ const ERROR_MESSAGES: Record<string, string> = {
   default: 'Something went wrong. Please try again.',
 };
 
+function isSafeRedirect(url: string): boolean {
+  return url.startsWith('/') && !url.startsWith('//');
+}
+
 export default async function SignInPage({ searchParams }: Props) {
-  const { error, callbackUrl = '/dashboard', reset, retry } = await searchParams;
+  const { error, callbackUrl: rawCallbackUrl = '/dashboard', reset, retry } = await searchParams;
+  const callbackUrl = isSafeRedirect(rawCallbackUrl) ? rawCallbackUrl : '/dashboard';
 
   async function credentialsAction(formData: FormData) {
     'use server';
-    const email = formData.get('email') as string;
+    const email = (formData.get('email') as string).trim().toLowerCase();
     const ip = getIp(await headers());
     const { limited, retryAfterMinutes } = await checkRateLimit(
       rateLimiters.login,

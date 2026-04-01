@@ -1,10 +1,23 @@
-# Current Feature
+# Current Feature: Audit Fixes
 
 ## Status
+In Progress
 
 ## Goals
+- Fix open redirect vulnerability via unvalidated `callbackUrl` in sign-in (HIGH)
+- Bound `getSidebarCollections` query with `take` limits to prevent unbounded data loading (HIGH)
+- Cap nested items in `getRecentCollections` with `take: 50` and extract shared dominant color helper (MEDIUM)
+- Normalize email (trim + lowercase) at registration, sign-in, and forgot-password (MEDIUM)
+- Serve original filename in download `Content-Disposition` instead of UUID key (MEDIUM)
 
 ## Notes
+- 5 fixes from security & quality audit
+- Spec file: `context/features/audit-fixes-spec.md`
+- Fix #1: Add `isSafeRedirect()` helper to validate callbackUrl starts with `/` and not `//`
+- Fix #2: Split sidebar collections into two bounded queries (favorites + recent) with take limits
+- Fix #3: Add `take: 50` to recent collections items, extract `computeDominantColor` shared helper
+- Fix #4: Normalize email at earliest input point in register, sign-in, and forgot-password actions
+- Fix #5: Accept `name` query param in download route, sanitize for Content-Disposition, update call sites
 
 ## History
 

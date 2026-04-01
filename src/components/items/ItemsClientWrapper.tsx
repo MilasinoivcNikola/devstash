@@ -38,7 +38,7 @@ function FileListRow({
 }) {
   const FileIcon = getFileIcon(item.fileName);
   const downloadUrl = item.fileUrl
-    ? `/api/download?key=${encodeURIComponent(item.fileUrl)}&download=1`
+    ? `/api/download?key=${encodeURIComponent(item.fileUrl)}&download=1${item.fileName ? `&name=${encodeURIComponent(item.fileName)}` : ''}`
     : null;
 
   return (

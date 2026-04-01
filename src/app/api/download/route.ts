@@ -34,9 +34,10 @@ export async function GET(req: Request) {
   }
 
   const contentType = obj.ContentType ?? 'application/octet-stream';
-  const fileName = key.split('/').pop() ?? 'download';
+  const rawName = searchParams.get('name');
+  const safeName = rawName ? rawName.replace(/[^\w\-. ]/g, '_') : key.split('/').pop() ?? 'download';
   const isInline = contentType.startsWith('image/');
-  const disposition = isInline ? 'inline' : `attachment; filename="${fileName}"`;
+  const disposition = isInline ? 'inline' : `attachment; filename="${safeName}"`;
 
   const stream = obj.Body.transformToWebStream();
   const headers: Record<string, string> = {

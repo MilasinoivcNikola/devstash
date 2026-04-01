@@ -484,7 +484,7 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
                         <div className="space-y-2">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
-                            src={`/api/download?key=${encodeURIComponent(item.fileUrl)}`}
+                            src={`/api/download?key=${encodeURIComponent(item.fileUrl)}${item.fileName ? `&name=${encodeURIComponent(item.fileName)}` : ''}`}
                             alt={item.fileName ?? 'Image'}
                             className="w-full rounded-md border border-border object-contain max-h-64 bg-muted/30"
                           />
@@ -510,7 +510,7 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
                         </div>
                       )}
                       <a
-                        href={`/api/download?key=${encodeURIComponent(item.fileUrl)}`}
+                        href={`/api/download?key=${encodeURIComponent(item.fileUrl)}${item.fileName ? `&name=${encodeURIComponent(item.fileName)}` : ''}`}
                         download={item.fileName ?? undefined}
                         className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
                       >
