@@ -87,7 +87,7 @@ function CommandContent({
               return (
                 <CommandItem
                   key={item.id}
-                  value={`item-${item.title}-${item.typeName}`}
+                  value={item.title}
                   onSelect={() => onItemSelect(item.id)}
                 >
                   {Icon && (
@@ -113,7 +113,7 @@ function CommandContent({
             {data.collections.map((collection) => (
               <CommandItem
                 key={collection.id}
-                value={`collection-${collection.name}`}
+                value={collection.name}
                 onSelect={() => onCollectionSelect(collection.id)}
               >
                 <FolderOpen className="h-4 w-4 text-muted-foreground shrink-0" />
