@@ -4,7 +4,7 @@ import { useState } from 'react';
 import ItemDrawer from './ItemDrawer';
 import type { ItemWithMeta } from '@/lib/db/items';
 import { ICON_MAP } from '@/lib/constants/item-types';
-import { Star, Pin, Download, FileText, FileCode, FileArchive, FileImage, FileVideo, FileAudio, File } from 'lucide-react';
+import { Star, Pin, Download, Copy, Check, FileText, FileCode, FileArchive, FileImage, FileVideo, FileAudio, File } from 'lucide-react';
 
 function formatDate(date: Date | string) {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -122,11 +122,26 @@ function ClickableItemCard({
   showTypeBadge?: boolean;
 }) {
   const Icon = ICON_MAP[item.itemType.icon];
+  const [copied, setCopied] = useState(false);
+
+  const copyValue = item.content ?? item.url ?? null;
+
+  function handleCopy(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!copyValue) return;
+    navigator.clipboard.writeText(copyValue).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className="bg-card border border-border rounded-lg px-4 py-3 flex items-start gap-3 border-l-[3px] w-full text-left hover:bg-accent/40 transition-colors cursor-pointer"
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      className="group bg-card border border-border rounded-lg px-4 py-3 flex items-start gap-3 border-l-[3px] w-full text-left hover:bg-accent/40 transition-colors cursor-pointer"
       style={{ borderLeftColor: item.itemType.color }}
     >
       <div
@@ -170,10 +185,23 @@ function ClickableItemCard({
           ))}
         </div>
       </div>
-      <span className="text-xs text-muted-foreground shrink-0 mt-0.5">
-        {formatDate(item.createdAt)}
-      </span>
-    </button>
+      <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+        <span className="text-xs text-muted-foreground">{formatDate(item.createdAt)}</span>
+        {copyValue && (
+          <div
+            role="button"
+            onClick={handleCopy}
+            className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+            title="Copy"
+          >
+            {copied
+              ? <Check className="h-3 w-3 text-green-500" />
+              : <Copy className="h-3 w-3" />
+            }
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
