@@ -23,9 +23,11 @@ import { toast } from 'sonner';
 import { updateItem, deleteItem } from '@/actions/items';
 import type { ItemDetail } from '@/lib/db/items';
 import CodeEditor from '@/components/items/CodeEditor';
+import MarkdownEditor from '@/components/items/MarkdownEditor';
 
 const CONTENT_TYPES = new Set(['snippet', 'prompt', 'command', 'note']);
 const LANGUAGE_TYPES = new Set(['snippet', 'command']);
+const MARKDOWN_TYPES = new Set(['prompt', 'note']);
 
 interface ItemDrawerProps {
   itemId: string | null;
@@ -224,6 +226,7 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
   const typeName = item?.itemType.name ?? '';
   const showContent = CONTENT_TYPES.has(typeName);
   const showLanguage = LANGUAGE_TYPES.has(typeName);
+  const showMarkdown = MARKDOWN_TYPES.has(typeName);
   const showUrl = typeName === 'link';
 
   const formatDate = (date: string | Date) =>
@@ -351,6 +354,12 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
                           onChange={(val) => setEditState((s) => ({ ...s, content: val }))}
                           language={editState.language}
                         />
+                      ) : showMarkdown ? (
+                        <MarkdownEditor
+                          value={editState.content}
+                          onChange={(val) => setEditState((s) => ({ ...s, content: val }))}
+                          placeholder="Write markdown content..."
+                        />
                       ) : (
                         <textarea
                           className={`${inputClass(true)} font-mono text-xs`}
@@ -420,6 +429,11 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
                         <CodeEditor
                           value={item.content}
                           language={item.language ?? undefined}
+                          readOnly
+                        />
+                      ) : showMarkdown ? (
+                        <MarkdownEditor
+                          value={item.content}
                           readOnly
                         />
                       ) : (

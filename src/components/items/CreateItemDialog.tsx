@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { createItem } from '@/actions/items';
 import CodeEditor from '@/components/items/CodeEditor';
+import MarkdownEditor from '@/components/items/MarkdownEditor';
 
 const TYPES = [
   { name: 'snippet', label: 'Snippet', icon: Code, color: '#3b82f6' },
@@ -26,6 +27,7 @@ type TypeName = (typeof TYPES)[number]['name'];
 
 const CONTENT_TYPES = new Set<TypeName>(['snippet', 'prompt', 'command', 'note']);
 const LANGUAGE_TYPES = new Set<TypeName>(['snippet', 'command']);
+const MARKDOWN_TYPES = new Set<TypeName>(['prompt', 'note']);
 
 function inputClass(multiline?: boolean) {
   const base =
@@ -74,6 +76,7 @@ export default function CreateItemDialog({ defaultType, triggerLabel }: CreateIt
 
   const showContent = CONTENT_TYPES.has(selectedType);
   const showLanguage = LANGUAGE_TYPES.has(selectedType);
+  const showMarkdown = MARKDOWN_TYPES.has(selectedType);
   const showUrl = selectedType === 'link';
 
   function handleOpenChange(next: boolean) {
@@ -207,6 +210,12 @@ export default function CreateItemDialog({ defaultType, triggerLabel }: CreateIt
                     value={form.content}
                     onChange={(val) => setForm((s) => ({ ...s, content: val }))}
                     language={form.language}
+                  />
+                ) : showMarkdown ? (
+                  <MarkdownEditor
+                    value={form.content}
+                    onChange={(val) => setForm((s) => ({ ...s, content: val }))}
+                    placeholder="Write markdown content..."
                   />
                 ) : (
                   <textarea
