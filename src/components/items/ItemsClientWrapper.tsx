@@ -208,7 +208,113 @@ function ClickableItemCard({
 interface ItemsGridWrapperProps {
   items: ItemWithMeta[];
   showTypeBadge?: boolean;
-  layout?: 'grid' | 'list' | 'gallery' | 'file-list';
+  layout?: 'grid' | 'list' | 'gallery' | 'file-list' | 'grouped';
+}
+
+function ItemsSection({
+  items,
+  layout,
+  showTypeBadge,
+  onItemClick,
+}: {
+  items: ItemWithMeta[];
+  layout: 'grid' | 'gallery' | 'file-list';
+  showTypeBadge?: boolean;
+  onItemClick: (id: string) => void;
+}) {
+  if (layout === 'file-list') {
+    return (
+      <div className="flex flex-col gap-1.5">
+        {items.map((item) => (
+          <FileListRow key={item.id} item={item} onClick={() => onItemClick(item.id)} />
+        ))}
+      </div>
+    );
+  }
+
+  if (layout === 'gallery') {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+        {items.map((item) => (
+          <ImageThumbnailCard key={item.id} item={item} onClick={() => onItemClick(item.id)} />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      {items.map((item) => (
+        <ClickableItemCard
+          key={item.id}
+          item={item}
+          showTypeBadge={showTypeBadge}
+          onClick={() => onItemClick(item.id)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function getLayoutForType(typeName: string): 'grid' | 'gallery' | 'file-list' {
+  if (typeName === 'image') return 'gallery';
+  if (typeName === 'file') return 'file-list';
+  return 'grid';
+}
+
+function GroupedItemsGrid({
+  items,
+  onItemClick,
+}: {
+  items: ItemWithMeta[];
+  onItemClick: (id: string) => void;
+}) {
+  const groups = items.reduce<Record<string, { type: ItemWithMeta['itemType']; items: ItemWithMeta[] }>>(
+    (acc, item) => {
+      const key = item.itemType.name;
+      if (!acc[key]) acc[key] = { type: item.itemType, items: [] };
+      acc[key].items.push(item);
+      return acc;
+    },
+    {}
+  );
+
+  const sortedGroups = Object.values(groups).sort((a, b) => b.items.length - a.items.length);
+
+  return (
+    <div className="space-y-8">
+      {sortedGroups.map((group) => {
+        const Icon = ICON_MAP[group.type.icon];
+        const layout = getLayoutForType(group.type.name);
+
+        return (
+          <section key={group.type.name}>
+            <div className="flex items-center gap-2 mb-3">
+              {Icon && (
+                <div
+                  className="h-6 w-6 rounded-md flex items-center justify-center"
+                  style={{ backgroundColor: `${group.type.color}22` }}
+                >
+                  <Icon className="h-3.5 w-3.5" style={{ color: group.type.color }} />
+                </div>
+              )}
+              <h2 className="text-sm font-semibold text-foreground capitalize">
+                {group.type.name}s
+              </h2>
+              <span className="text-xs text-muted-foreground">
+                {group.items.length}
+              </span>
+            </div>
+            <ItemsSection
+              items={group.items}
+              layout={layout}
+              onItemClick={onItemClick}
+            />
+          </section>
+        );
+      })}
+    </div>
+  );
 }
 
 export function ItemsGridWrapper({ items, showTypeBadge, layout = 'grid' }: ItemsGridWrapperProps) {
@@ -216,42 +322,15 @@ export function ItemsGridWrapper({ items, showTypeBadge, layout = 'grid' }: Item
 
   return (
     <>
-      {layout === 'file-list' && (
-        <div className="flex flex-col gap-1.5">
-          {items.map((item) => (
-            <FileListRow
-              key={item.id}
-              item={item}
-              onClick={() => setActiveItemId(item.id)}
-            />
-          ))}
-        </div>
-      )}
-      {layout !== 'file-list' && (
-        <div
-          className={
-            layout === 'gallery' || layout === 'grid'
-              ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3'
-              : 'flex flex-col gap-3'
-          }
-        >
-          {items.map((item) =>
-            layout === 'gallery' ? (
-              <ImageThumbnailCard
-                key={item.id}
-                item={item}
-                onClick={() => setActiveItemId(item.id)}
-              />
-            ) : (
-              <ClickableItemCard
-                key={item.id}
-                item={item}
-                showTypeBadge={showTypeBadge}
-                onClick={() => setActiveItemId(item.id)}
-              />
-            )
-          )}
-        </div>
+      {layout === 'grouped' ? (
+        <GroupedItemsGrid items={items} onItemClick={setActiveItemId} />
+      ) : (
+        <ItemsSection
+          items={items}
+          layout={layout === 'list' ? 'grid' : (layout as 'grid' | 'gallery' | 'file-list')}
+          showTypeBadge={showTypeBadge}
+          onItemClick={setActiveItemId}
+        />
       )}
       <ItemDrawer itemId={activeItemId} onClose={() => setActiveItemId(null)} />
     </>

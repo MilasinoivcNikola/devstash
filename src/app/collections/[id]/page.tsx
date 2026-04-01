@@ -46,7 +46,7 @@ export default async function CollectionDetailPage({
           <p className="text-muted-foreground text-sm">No items in this collection yet.</p>
         </div>
       ) : (
-        <ItemsGridWrapper items={items} showTypeBadge layout="grid" />
+        <ItemsGridWrapper items={items} layout="grouped" />
       )}
     </div>
   );
