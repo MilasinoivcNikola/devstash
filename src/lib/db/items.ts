@@ -302,6 +302,33 @@ export async function deleteItem(
   return { deleted: true, fileUrl: item.fileUrl };
 }
 
+export type SearchItem = {
+  id: string;
+  title: string;
+  typeName: string;
+  typeIcon: string;
+  typeColor: string;
+};
+
+export async function getSearchItems(userId: string): Promise<SearchItem[]> {
+  const items = await prisma.item.findMany({
+    where: { userId },
+    select: {
+      id: true,
+      title: true,
+      itemType: { select: { name: true, icon: true, color: true } },
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+  return items.map((i) => ({
+    id: i.id,
+    title: i.title,
+    typeName: i.itemType.name,
+    typeIcon: i.itemType.icon,
+    typeColor: i.itemType.color,
+  }));
+}
+
 export async function getSidebarItemTypes(userId: string): Promise<SidebarItemType[]> {
   const types = await prisma.itemType.findMany({
     where: { isSystem: true },
