@@ -1,23 +1,10 @@
-# Current Feature: Audit Fixes
+# Current Feature
 
 ## Status
-In Progress
 
 ## Goals
-- Fix open redirect vulnerability via unvalidated `callbackUrl` in sign-in (HIGH)
-- Bound `getSidebarCollections` query with `take` limits to prevent unbounded data loading (HIGH)
-- Cap nested items in `getRecentCollections` with `take: 50` and extract shared dominant color helper (MEDIUM)
-- Normalize email (trim + lowercase) at registration, sign-in, and forgot-password (MEDIUM)
-- Serve original filename in download `Content-Disposition` instead of UUID key (MEDIUM)
 
 ## Notes
-- 5 fixes from security & quality audit
-- Spec file: `context/features/audit-fixes-spec.md`
-- Fix #1: Add `isSafeRedirect()` helper to validate callbackUrl starts with `/` and not `//`
-- Fix #2: Split sidebar collections into two bounded queries (favorites + recent) with take limits
-- Fix #3: Add `take: 50` to recent collections items, extract `computeDominantColor` shared helper
-- Fix #4: Normalize email at earliest input point in register, sign-in, and forgot-password actions
-- Fix #5: Accept `name` query param in download route, sanitize for Content-Disposition, update call sites
 
 ## History
 
@@ -53,3 +40,4 @@ In Progress
 - **2026-04-01** — File & image upload with Cloudflare R2: installed `@aws-sdk/client-s3`; created `src/lib/r2.ts` (lazy S3 client + `deleteFromR2`); `POST /api/upload` validates MIME type and size (images 5 MB, files 10 MB), uploads to R2 with `uploads/{userId}/{uuid}.{ext}` key format; `GET /api/download` is an ownership-validated proxy (inline for images, attachment for files); `FileUpload` component (`src/components/items/FileUpload.tsx`) with drag-and-drop, XHR progress bar, image preview via object URL, and file info display; `CreateItemDialog` extended with file/image type buttons and `FileUpload`; `ItemDrawer` shows image preview, file info card, and download button; `deleteItem` cleans up R2 after DB deletion; `deleteItem` DB function updated to return `{ deleted, fileUrl }`; tests updated accordingly.
 - **2026-04-01** — Image gallery view: added `ImageThumbnailCard` component to `ItemsClientWrapper.tsx` with 16:9 `aspect-video` thumbnails, `object-cover`, and 5% hover scale in 300ms; added `gallery` layout option to `ItemsGridWrapper`; `/items/images` now renders the gallery layout; exposed `fileUrl` on `ItemWithMeta` type so thumbnails load via `/api/download` proxy.
 - **2026-04-01** — File list view: `/items/files` now renders a single-column list (Google Drive style); added `fileName` and `fileSize` to `ItemWithMeta` type and `mapItem`; `FileListRow` component shows extension-based file icon (`FileImage`, `FileVideo`, `FileAudio`, `FileArchive`, `FileCode`, `FileText`, generic `File`), file name, formatted size (B/KB/MB), upload date, and a download button (stops propagation); size and date stack vertically on mobile; added `'file-list'` layout option to `ItemsGridWrapper`.
+- **2026-04-01** — Audit fixes: 5 issues from security & quality audit — (1) open redirect via unvalidated `callbackUrl` fixed with `isSafeRedirect()` helper in sign-in; (2) `getSidebarCollections` unbounded query split into two bounded `Promise.all` queries (10 favorites, 5 recent) with `take: 50` on nested items; (3) `getRecentCollections` capped nested items at 50, extracted shared `computeDominantColor` helper; (4) email normalized with `.trim().toLowerCase()` at registration and sign-in (forgot-password already had it); (5) download route serves original filename via `name` query param with sanitization, all call sites updated. Added 6 unit tests for collections DB functions.
