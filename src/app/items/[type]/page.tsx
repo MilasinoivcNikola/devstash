@@ -5,7 +5,7 @@ import { ItemsGridWrapper } from '@/components/items/ItemsClientWrapper';
 import CreateItemDialog from '@/components/items/CreateItemDialog';
 
 const VALID_TYPES = ['snippet', 'prompt', 'command', 'note', 'file', 'image', 'link'] as const;
-const CREATABLE_TYPES = new Set(['snippet', 'prompt', 'command', 'note', 'link']);
+const CREATABLE_TYPES = new Set(['snippet', 'prompt', 'command', 'note', 'link', 'file', 'image']);
 
 export default async function ItemsTypePage({
   params,
@@ -36,7 +36,7 @@ export default async function ItemsTypePage({
         </div>
         {CREATABLE_TYPES.has(typeName) && (
           <CreateItemDialog
-            defaultType={typeName as 'snippet' | 'prompt' | 'command' | 'note' | 'link'}
+            defaultType={typeName as 'snippet' | 'prompt' | 'command' | 'note' | 'link' | 'file' | 'image'}
             triggerLabel={`New ${typeName.charAt(0).toUpperCase() + typeName.slice(1)}`}
           />
         )}
