@@ -2,9 +2,9 @@
 
 import { Menu, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import CreateItemDialog from "@/components/items/CreateItemDialog";
+import CreateCollectionDialog from "@/components/collections/CreateCollectionDialog";
 
 interface TopBarProps {
   onSidebarOpen?: () => void;
@@ -49,9 +49,7 @@ export default function TopBar({ onSidebarOpen, logoHref = '/' }: TopBarProps) {
 
       {/* Actions */}
       <div className="hidden md:flex items-center gap-2 justify-end shrink-0">
-        <Button variant="outline" size="sm">
-          New Collection
-        </Button>
+        <CreateCollectionDialog />
         <CreateItemDialog />
       </div>
     </header>

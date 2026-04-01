@@ -98,6 +98,26 @@ export type SidebarCollection = {
   dominantColor: string;
 };
 
+export async function createCollection(
+  userId: string,
+  data: { name: string; description: string | null }
+) {
+  return prisma.collection.create({
+    data: {
+      name: data.name,
+      description: data.description,
+      userId,
+    },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      isFavorite: true,
+      createdAt: true,
+    },
+  });
+}
+
 export async function getSidebarCollections(userId: string): Promise<{
   favorites: SidebarCollection[];
   recent: SidebarCollection[];

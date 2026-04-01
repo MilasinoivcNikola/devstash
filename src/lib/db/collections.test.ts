@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getRecentCollections, getSidebarCollections } from './collections';
+import { getRecentCollections, getSidebarCollections, createCollection } from './collections';
 import { prisma } from '@/lib/prisma';
 
 const mockCollectionFindMany = vi.mocked(prisma.collection.findMany);
+const mockCollectionCreate = vi.mocked(prisma.collection.create);
 
 const snippetType = { id: 'type-1', name: 'snippet', icon: 'Code', color: '#3b82f6' };
 const promptType = { id: 'type-2', name: 'prompt', icon: 'Sparkles', color: '#8b5cf6' };
@@ -125,5 +126,57 @@ describe('getSidebarCollections', () => {
         take: 5,
       }),
     );
+  });
+});
+
+describe('createCollection', () => {
+  it('creates a collection with name and description', async () => {
+    const created = {
+      id: 'col-new',
+      name: 'My Collection',
+      description: 'A test collection',
+      isFavorite: false,
+      createdAt: new Date(),
+    };
+    mockCollectionCreate.mockResolvedValue(created as never);
+
+    const result = await createCollection('user-1', {
+      name: 'My Collection',
+      description: 'A test collection',
+    });
+
+    expect(result).toEqual(created);
+    expect(mockCollectionCreate).toHaveBeenCalledWith({
+      data: {
+        name: 'My Collection',
+        description: 'A test collection',
+        userId: 'user-1',
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        isFavorite: true,
+        createdAt: true,
+      },
+    });
+  });
+
+  it('creates a collection with null description', async () => {
+    const created = {
+      id: 'col-new',
+      name: 'No Desc',
+      description: null,
+      isFavorite: false,
+      createdAt: new Date(),
+    };
+    mockCollectionCreate.mockResolvedValue(created as never);
+
+    const result = await createCollection('user-1', {
+      name: 'No Desc',
+      description: null,
+    });
+
+    expect(result.description).toBeNull();
   });
 });
