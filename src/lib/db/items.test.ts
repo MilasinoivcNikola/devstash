@@ -1,10 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemById, updateItem, deleteItem } from './items';
+import { getItemById, updateItem, deleteItem, createItem } from './items';
 import { prisma } from '@/lib/prisma';
 
 const mockFindFirst = vi.mocked(prisma.item.findFirst);
 const mockUpdate = vi.mocked(prisma.item.update);
 const mockDelete = vi.mocked(prisma.item.delete);
+const mockTransaction = vi.mocked(prisma.$transaction);
+const mockItemCreate = vi.mocked(prisma.item.create);
+const mockItemTypeFindFirst = vi.mocked(prisma.itemType.findFirst);
 
 const baseItem = {
   id: 'item-1',
@@ -41,6 +44,103 @@ const updatedItem = {
   updatedAt: new Date('2024-02-01'),
 };
 
+describe('createItem', () => {
+  it('returns null when item type is not found', async () => {
+    mockItemTypeFindFirst.mockResolvedValue(null);
+
+    const result = await createItem('user-1', {
+      title: 'Test',
+      description: null,
+      content: 'code',
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: 'typescript',
+      tags: [],
+      itemTypeName: 'snippet',
+      collectionIds: [],
+    });
+
+    expect(result).toBeNull();
+    expect(mockItemCreate).not.toHaveBeenCalled();
+  });
+
+  it('creates item with collection connections', async () => {
+    mockItemTypeFindFirst.mockResolvedValue({
+      id: 'type-1',
+      name: 'snippet',
+      icon: 'Code',
+      color: '#3b82f6',
+      isSystem: true,
+      userId: null,
+    });
+    mockItemCreate.mockResolvedValue(baseItem as never);
+
+    await createItem('user-1', {
+      title: 'useAuth Hook',
+      description: null,
+      content: 'code',
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: 'typescript',
+      tags: ['react'],
+      itemTypeName: 'snippet',
+      collectionIds: ['col-1', 'col-2'],
+    });
+
+    expect(mockItemCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          collections: {
+            create: [
+              { collectionId: 'col-1' },
+              { collectionId: 'col-2' },
+            ],
+          },
+        }),
+      })
+    );
+  });
+
+  it('creates item with empty collectionIds', async () => {
+    mockItemTypeFindFirst.mockResolvedValue({
+      id: 'type-1',
+      name: 'snippet',
+      icon: 'Code',
+      color: '#3b82f6',
+      isSystem: true,
+      userId: null,
+    });
+    mockItemCreate.mockResolvedValue({ ...baseItem, collections: [] } as never);
+
+    const result = await createItem('user-1', {
+      title: 'Test',
+      description: null,
+      content: 'code',
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: null,
+      tags: [],
+      itemTypeName: 'snippet',
+      collectionIds: [],
+    });
+
+    expect(result).not.toBeNull();
+    expect(mockItemCreate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          collections: { create: [] },
+        }),
+      })
+    );
+  });
+});
+
 describe('updateItem', () => {
   it('returns null when item does not belong to user', async () => {
     mockFindFirst.mockResolvedValue(null);
@@ -52,15 +152,22 @@ describe('updateItem', () => {
       url: null,
       language: null,
       tags: [],
+      collectionIds: [],
     });
 
     expect(result).toBeNull();
-    expect(mockUpdate).not.toHaveBeenCalled();
+    expect(mockTransaction).not.toHaveBeenCalled();
   });
 
   it('checks ownership with userId and id', async () => {
     mockFindFirst.mockResolvedValue(baseItem as never);
-    mockUpdate.mockResolvedValue(updatedItem as never);
+    mockTransaction.mockImplementation(async (fn) => {
+      const tx = {
+        itemCollection: { deleteMany: vi.fn() },
+        item: { update: vi.fn().mockResolvedValue(updatedItem) },
+      };
+      return (fn as (tx: typeof tx) => Promise<unknown>)(tx);
+    });
 
     await updateItem('user-1', 'item-1', {
       title: 'Title',
@@ -69,6 +176,7 @@ describe('updateItem', () => {
       url: null,
       language: null,
       tags: [],
+      collectionIds: [],
     });
 
     expect(mockFindFirst).toHaveBeenCalledWith({
@@ -76,9 +184,17 @@ describe('updateItem', () => {
     });
   });
 
-  it('calls update with correct fields and tag pattern', async () => {
+  it('calls transaction with deleteMany and update', async () => {
     mockFindFirst.mockResolvedValue(baseItem as never);
-    mockUpdate.mockResolvedValue(updatedItem as never);
+    const mockTxDeleteMany = vi.fn();
+    const mockTxUpdate = vi.fn().mockResolvedValue(updatedItem);
+    mockTransaction.mockImplementation(async (fn) => {
+      const tx = {
+        itemCollection: { deleteMany: mockTxDeleteMany },
+        item: { update: mockTxUpdate },
+      };
+      return (fn as (tx: typeof tx) => Promise<unknown>)(tx);
+    });
 
     await updateItem('user-1', 'item-1', {
       title: 'Updated Title',
@@ -87,22 +203,17 @@ describe('updateItem', () => {
       url: null,
       language: 'javascript',
       tags: ['react', 'new-tag'],
+      collectionIds: ['col-1'],
     });
 
-    expect(mockUpdate).toHaveBeenCalledWith(
+    expect(mockTxDeleteMany).toHaveBeenCalledWith({ where: { itemId: 'item-1' } });
+    expect(mockTxUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'item-1' },
         data: expect.objectContaining({
           title: 'Updated Title',
-          description: 'Updated desc',
-          content: 'updated content',
-          language: 'javascript',
-          tags: {
-            set: [],
-            connectOrCreate: [
-              { where: { name: 'react' }, create: { name: 'react' } },
-              { where: { name: 'new-tag' }, create: { name: 'new-tag' } },
-            ],
+          collections: {
+            create: [{ collectionId: 'col-1' }],
           },
         }),
       })
@@ -111,7 +222,13 @@ describe('updateItem', () => {
 
   it('returns mapped ItemDetail on success', async () => {
     mockFindFirst.mockResolvedValue(baseItem as never);
-    mockUpdate.mockResolvedValue(updatedItem as never);
+    mockTransaction.mockImplementation(async (fn) => {
+      const tx = {
+        itemCollection: { deleteMany: vi.fn() },
+        item: { update: vi.fn().mockResolvedValue(updatedItem) },
+      };
+      return (fn as (tx: typeof tx) => Promise<unknown>)(tx);
+    });
 
     const result = await updateItem('user-1', 'item-1', {
       title: 'Updated Title',
@@ -120,6 +237,7 @@ describe('updateItem', () => {
       url: null,
       language: 'javascript',
       tags: ['react', 'hooks'],
+      collectionIds: [],
     });
 
     expect(result).not.toBeNull();

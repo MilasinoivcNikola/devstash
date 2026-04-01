@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getRecentCollections, getSidebarCollections, createCollection } from './collections';
+import { getRecentCollections, getSidebarCollections, createCollection, getUserCollections } from './collections';
 import { prisma } from '@/lib/prisma';
 
 const mockCollectionFindMany = vi.mocked(prisma.collection.findMany);
@@ -162,7 +162,7 @@ describe('createCollection', () => {
     });
   });
 
-  it('creates a collection with null description', async () => {
+  it('creates collection with null description', async () => {
     const created = {
       id: 'col-new',
       name: 'No Desc',
@@ -178,5 +178,34 @@ describe('createCollection', () => {
     });
 
     expect(result.description).toBeNull();
+  });
+});
+
+describe('getUserCollections', () => {
+  it('returns collections with id and name sorted by name', async () => {
+    mockCollectionFindMany.mockResolvedValue([
+      { id: 'col-1', name: 'Alpha' },
+      { id: 'col-2', name: 'Beta' },
+    ] as never);
+
+    const result = await getUserCollections('user-1');
+
+    expect(result).toEqual([
+      { id: 'col-1', name: 'Alpha' },
+      { id: 'col-2', name: 'Beta' },
+    ]);
+    expect(mockCollectionFindMany).toHaveBeenCalledWith({
+      where: { userId: 'user-1' },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+  });
+
+  it('returns empty array when user has no collections', async () => {
+    mockCollectionFindMany.mockResolvedValue([] as never);
+
+    const result = await getUserCollections('user-1');
+
+    expect(result).toEqual([]);
   });
 });

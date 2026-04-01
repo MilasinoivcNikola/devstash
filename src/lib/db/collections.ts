@@ -118,6 +118,19 @@ export async function createCollection(
   });
 }
 
+export type CollectionOption = {
+  id: string;
+  name: string;
+};
+
+export async function getUserCollections(userId: string): Promise<CollectionOption[]> {
+  return prisma.collection.findMany({
+    where: { userId },
+    select: { id: true, name: true },
+    orderBy: { name: 'asc' },
+  });
+}
+
 export async function getSidebarCollections(userId: string): Promise<{
   favorites: SidebarCollection[];
   recent: SidebarCollection[];

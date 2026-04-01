@@ -21,9 +21,11 @@ import {
 import { Star, Pin, Copy, Pencil, Trash2, FolderOpen, Calendar, Save, X, Download, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateItem, deleteItem } from '@/actions/items';
+import { getUserCollections } from '@/actions/collections';
 import type { ItemDetail } from '@/lib/db/items';
 import CodeEditor from '@/components/items/CodeEditor';
 import MarkdownEditor from '@/components/items/MarkdownEditor';
+import CollectionPicker, { type CollectionOption } from '@/components/items/CollectionPicker';
 
 const CONTENT_TYPES = new Set(['snippet', 'prompt', 'command', 'note']);
 const LANGUAGE_TYPES = new Set(['snippet', 'command']);
@@ -144,6 +146,8 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
     language: '',
     tags: '',
   });
+  const [collections, setCollections] = useState<CollectionOption[]>([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!itemId) {
@@ -170,6 +174,8 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
       language: item.language ?? '',
       tags: item.tags.join(', '),
     });
+    setSelectedCollectionIds(item.collections.map((c) => c.id));
+    getUserCollections().then(setCollections);
     setEditMode(true);
   }
 
@@ -193,6 +199,7 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
       url: editState.url || null,
       language: editState.language || null,
       tags,
+      collectionIds: selectedCollectionIds,
     });
 
     setSaving(false);
@@ -411,6 +418,18 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
                     />
                     <p className="mt-1 text-xs text-muted-foreground">Separate tags with commas</p>
                   </section>
+
+                  {/* Collections */}
+                  {collections.length > 0 && (
+                    <section>
+                      <FieldLabel>Collections</FieldLabel>
+                      <CollectionPicker
+                        collections={collections}
+                        selected={selectedCollectionIds}
+                        onChange={setSelectedCollectionIds}
+                      />
+                    </section>
+                  )}
                 </>
               ) : (
                 <>

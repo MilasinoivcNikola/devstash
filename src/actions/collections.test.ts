@@ -1,17 +1,46 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createCollection } from './collections';
+import { createCollection, getUserCollections } from './collections';
 import { auth } from '@/auth';
-import { createCollection as createCollectionDb } from '@/lib/db/collections';
+import { createCollection as createCollectionDb, getUserCollections as getUserCollectionsDb } from '@/lib/db/collections';
 
 vi.mock('@/lib/db/collections', () => ({
   createCollection: vi.fn(),
+  getUserCollections: vi.fn(),
 }));
 
 const mockAuth = vi.mocked(auth);
 const mockCreateDb = vi.mocked(createCollectionDb);
+const mockGetUserCollectionsDb = vi.mocked(getUserCollectionsDb);
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe('getUserCollections action', () => {
+  it('returns empty array when not logged in', async () => {
+    mockAuth.mockResolvedValue(null as never);
+
+    const result = await getUserCollections();
+
+    expect(result).toEqual([]);
+    expect(mockGetUserCollectionsDb).not.toHaveBeenCalled();
+  });
+
+  it('returns collections for authenticated user', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'user-1' } } as never);
+    mockGetUserCollectionsDb.mockResolvedValue([
+      { id: 'col-1', name: 'React Patterns' },
+      { id: 'col-2', name: 'Python Scripts' },
+    ]);
+
+    const result = await getUserCollections();
+
+    expect(result).toEqual([
+      { id: 'col-1', name: 'React Patterns' },
+      { id: 'col-2', name: 'Python Scripts' },
+    ]);
+    expect(mockGetUserCollectionsDb).toHaveBeenCalledWith('user-1');
+  });
 });
 
 describe('createCollection action', () => {

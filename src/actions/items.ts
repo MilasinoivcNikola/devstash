@@ -24,6 +24,7 @@ const CreateItemSchema = z.object({
   fileSize: z.number().nullable().optional(),
   language: z.string().trim().nullable().optional(),
   tags: z.array(z.string().trim().min(1)),
+  collectionIds: z.array(z.string().min(1)).optional().default([]),
   itemTypeName: z.enum(ITEM_TYPE_VALUES),
 });
 
@@ -63,6 +64,7 @@ export async function createItem(
     fileSize: data.fileSize ?? null,
     language: data.language ?? null,
     tags: data.tags,
+    collectionIds: data.collectionIds ?? [],
     itemTypeName: data.itemTypeName,
   });
 
@@ -86,6 +88,7 @@ const UpdateItemSchema = z.object({
     .or(z.literal('').transform(() => null)),
   language: z.string().trim().nullable().optional(),
   tags: z.array(z.string().trim().min(1)),
+  collectionIds: z.array(z.string().min(1)).optional().default([]),
 });
 
 export type UpdateItemInput = z.infer<typeof UpdateItemSchema>;
@@ -119,6 +122,7 @@ export async function updateItem(
     url: data.url ?? null,
     language: data.language ?? null,
     tags: data.tags,
+    collectionIds: data.collectionIds ?? [],
   });
 
   if (!updated) {

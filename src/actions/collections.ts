@@ -2,7 +2,8 @@
 
 import { z } from 'zod';
 import { auth } from '@/auth';
-import { createCollection as createCollectionDb } from '@/lib/db/collections';
+import { createCollection as createCollectionDb, getUserCollections as getUserCollectionsDb } from '@/lib/db/collections';
+import type { CollectionOption } from '@/lib/db/collections';
 
 const CreateCollectionSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -14,6 +15,14 @@ export type CreateCollectionInput = z.infer<typeof CreateCollectionSchema>;
 type ActionResult<T> =
   | { success: true; data: T }
   | { success: false; error: string };
+
+export async function getUserCollections(): Promise<CollectionOption[]> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) return [];
+
+  return getUserCollectionsDb(userId);
+}
 
 export async function createCollection(
   input: CreateCollectionInput

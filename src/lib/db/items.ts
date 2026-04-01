@@ -160,6 +160,7 @@ export type CreateItemData = {
   language: string | null;
   tags: string[];
   itemTypeName: string;
+  collectionIds: string[];
 };
 
 export async function createItem(userId: string, data: CreateItemData): Promise<ItemDetail | null> {
@@ -187,6 +188,11 @@ export async function createItem(userId: string, data: CreateItemData): Promise<
         connectOrCreate: data.tags.map((name) => ({
           where: { name },
           create: { name },
+        })),
+      },
+      collections: {
+        create: data.collectionIds.map((collectionId) => ({
+          collectionId,
         })),
       },
     },
@@ -219,34 +225,45 @@ export type UpdateItemData = {
   url: string | null;
   language: string | null;
   tags: string[];
+  collectionIds: string[];
 };
 
 export async function updateItem(userId: string, id: string, data: UpdateItemData): Promise<ItemDetail | null> {
   const item = await prisma.item.findFirst({ where: { id, userId } });
   if (!item) return null;
 
-  const updated = await prisma.item.update({
-    where: { id },
-    data: {
-      title: data.title,
-      description: data.description,
-      content: data.content,
-      url: data.url,
-      language: data.language,
-      tags: {
-        set: [],
-        connectOrCreate: data.tags.map((name) => ({
-          where: { name },
-          create: { name },
-        })),
+  // Delete existing collection links and create new ones in a transaction
+  const updated = await prisma.$transaction(async (tx) => {
+    await tx.itemCollection.deleteMany({ where: { itemId: id } });
+
+    return tx.item.update({
+      where: { id },
+      data: {
+        title: data.title,
+        description: data.description,
+        content: data.content,
+        url: data.url,
+        language: data.language,
+        tags: {
+          set: [],
+          connectOrCreate: data.tags.map((name) => ({
+            where: { name },
+            create: { name },
+          })),
+        },
+        collections: {
+          create: data.collectionIds.map((collectionId) => ({
+            collectionId,
+          })),
+        },
       },
-    },
-    include: {
-      ...itemInclude,
-      collections: {
-        include: { collection: { select: { id: true, name: true } } },
+      include: {
+        ...itemInclude,
+        collections: {
+          include: { collection: { select: { id: true, name: true } } },
+        },
       },
-    },
+    });
   });
 
   return {

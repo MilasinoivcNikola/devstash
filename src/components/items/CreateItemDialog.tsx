@@ -12,9 +12,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { createItem } from '@/actions/items';
+import { getUserCollections } from '@/actions/collections';
 import CodeEditor from '@/components/items/CodeEditor';
 import MarkdownEditor from '@/components/items/MarkdownEditor';
 import FileUpload, { type UploadedFile } from '@/components/items/FileUpload';
+import CollectionPicker, { type CollectionOption } from '@/components/items/CollectionPicker';
 
 const TYPES = [
   { name: 'snippet', label: 'Snippet', icon: Code, color: '#3b82f6' },
@@ -77,6 +79,8 @@ export default function CreateItemDialog({ defaultType, triggerLabel }: CreateIt
   const [selectedType, setSelectedType] = useState<TypeName>(defaultType ?? 'snippet');
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
+  const [collections, setCollections] = useState<CollectionOption[]>([]);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   const showContent = CONTENT_TYPES.has(selectedType);
@@ -90,6 +94,9 @@ export default function CreateItemDialog({ defaultType, triggerLabel }: CreateIt
       setForm(EMPTY_FORM);
       setSelectedType(defaultType ?? 'snippet');
       setUploadedFile(null);
+      setSelectedCollectionIds([]);
+    } else {
+      getUserCollections().then(setCollections);
     }
     setOpen(next);
   }
@@ -118,6 +125,7 @@ export default function CreateItemDialog({ defaultType, triggerLabel }: CreateIt
       fileSize: uploadedFile?.fileSize ?? null,
       language: form.language || null,
       tags,
+      collectionIds: selectedCollectionIds,
       itemTypeName: selectedType,
     });
     setSaving(false);
@@ -278,6 +286,18 @@ export default function CreateItemDialog({ defaultType, triggerLabel }: CreateIt
               />
               <p className="mt-1 text-xs text-muted-foreground">Separate tags with commas</p>
             </div>
+
+            {/* Collections */}
+            {collections.length > 0 && (
+              <div>
+                <FieldLabel>Collections</FieldLabel>
+                <CollectionPicker
+                  collections={collections}
+                  selected={selectedCollectionIds}
+                  onChange={setSelectedCollectionIds}
+                />
+              </div>
+            )}
 
             {/* Actions */}
             <div className="flex justify-end gap-2 pt-2">

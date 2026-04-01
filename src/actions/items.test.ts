@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updateItem, deleteItem } from './items';
+import { updateItem, deleteItem, createItem } from './items';
 import { auth } from '@/auth';
 import * as itemsDb from '@/lib/db/items';
 
 const mockAuth = vi.mocked(auth);
+const mockCreateItemDb = vi.spyOn(itemsDb, 'createItem');
 const mockUpdateItemDb = vi.spyOn(itemsDb, 'updateItem');
 const mockDeleteItemDb = vi.spyOn(itemsDb, 'deleteItem');
 
@@ -40,6 +41,59 @@ const validInput = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe('createItem server action', () => {
+  it('passes collectionIds to DB function', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    mockCreateItemDb.mockResolvedValue(updatedItemDetail);
+
+    await createItem({
+      title: 'New Snippet',
+      description: null,
+      content: 'code',
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: 'typescript',
+      tags: [],
+      collectionIds: ['col-1', 'col-2'],
+      itemTypeName: 'snippet',
+    });
+
+    expect(mockCreateItemDb).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({
+        collectionIds: ['col-1', 'col-2'],
+      })
+    );
+  });
+
+  it('defaults collectionIds to empty array when omitted', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    mockCreateItemDb.mockResolvedValue(updatedItemDetail);
+
+    await createItem({
+      title: 'New Snippet',
+      description: null,
+      content: 'code',
+      url: null,
+      fileUrl: null,
+      fileName: null,
+      fileSize: null,
+      language: 'typescript',
+      tags: [],
+      itemTypeName: 'snippet',
+    } as never);
+
+    expect(mockCreateItemDb).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({
+        collectionIds: [],
+      })
+    );
+  });
 });
 
 describe('deleteItem server action', () => {
