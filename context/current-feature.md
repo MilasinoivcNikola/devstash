@@ -8,6 +8,8 @@
 
 ## History
 
+- **2026-04-01** — Collection edit, delete & favorite actions: `/collections/[id]` detail page now has Edit, Delete, and Favorite (disabled placeholder) buttons; Edit opens `EditCollectionDialog` modal (name + description); Delete opens `DeleteCollectionDialog` confirmation (redirects to `/collections`); collection cards on `/collections` and dashboard use `CollectionCardMenu` (3-dot dropdown with Edit, Delete, Favorite); cards restructured with stretched-link pattern (`<div>` + absolute `<Link>` overlay) so dropdown dialogs don't trigger navigation; `updateCollection` and `deleteCollection` DB queries (user-scoped); `updateCollection` and `deleteCollection` server actions (Zod validation, auth check, `{ success, data | error }` pattern); items are never deleted when a collection is deleted (cascade removes only join rows); 11 new tests (4 DB, 7 action).
+
 - **2026-04-01** — Collection detail type-grouped layout: `/collections/[id]` now groups items by type with section headers (icon + name + count); image items render as gallery thumbnails (`ImageThumbnailCard`), file items as file-list rows (`FileListRow`), all other types as standard card grid; groups sorted by item count descending; extracted `ItemsSection`, `GroupedItemsGrid`, and `getLayoutForType` into `ItemsClientWrapper.tsx`; added `'grouped'` layout option to `ItemsGridWrapper`.
 
 - **2026-03-27** — Initial Next.js setup from Create Next App; cleaned up default assets, added project context files, updated CLAUDE.md with project instructions.

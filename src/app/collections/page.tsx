@@ -2,17 +2,18 @@ import { getAllCollections, CollectionWithMeta } from '@/lib/db/collections';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { Star, MoreHorizontal } from 'lucide-react';
+import { Star } from 'lucide-react';
 import { ICON_MAP } from '@/lib/constants/item-types';
 import CreateCollectionDialog from '@/components/collections/CreateCollectionDialog';
+import CollectionCardMenu from '@/components/collections/CollectionCardMenu';
 
 function CollectionCard({ collection }: { collection: CollectionWithMeta }) {
   return (
-    <Link
-      href={`/collections/${collection.id}`}
-      className="bg-card border border-border rounded-lg p-4 flex flex-col gap-2 border-l-[3px] hover:bg-accent/50 transition-colors"
+    <div
+      className="relative bg-card border border-border rounded-lg p-4 flex flex-col gap-2 border-l-[3px] hover:bg-accent/50 transition-colors"
       style={{ borderLeftColor: collection.dominantColor }}
     >
+      <Link href={`/collections/${collection.id}`} className="absolute inset-0 rounded-lg" />
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1.5 min-w-0">
           <span className="font-medium text-sm text-foreground truncate">
@@ -22,9 +23,9 @@ function CollectionCard({ collection }: { collection: CollectionWithMeta }) {
             <Star className="h-3.5 w-3.5 text-yellow-400 fill-yellow-400 shrink-0" />
           )}
         </div>
-        <span className="text-muted-foreground shrink-0 ml-2">
-          <MoreHorizontal className="h-4 w-4" />
-        </span>
+        <div className="relative z-10">
+          <CollectionCardMenu collection={collection} />
+        </div>
       </div>
       <p className="text-xs text-muted-foreground">{collection.itemCount} items</p>
       {collection.description && (
@@ -40,7 +41,7 @@ function CollectionCard({ collection }: { collection: CollectionWithMeta }) {
           })}
         </div>
       )}
-    </Link>
+    </div>
   );
 }
 

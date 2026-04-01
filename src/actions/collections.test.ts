@@ -1,15 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createCollection, getUserCollections } from './collections';
+import { createCollection, getUserCollections, updateCollection, deleteCollection } from './collections';
 import { auth } from '@/auth';
-import { createCollection as createCollectionDb, getUserCollections as getUserCollectionsDb } from '@/lib/db/collections';
+import {
+  createCollection as createCollectionDb,
+  updateCollection as updateCollectionDb,
+  deleteCollection as deleteCollectionDb,
+  getUserCollections as getUserCollectionsDb,
+} from '@/lib/db/collections';
 
 vi.mock('@/lib/db/collections', () => ({
   createCollection: vi.fn(),
+  updateCollection: vi.fn(),
+  deleteCollection: vi.fn(),
   getUserCollections: vi.fn(),
 }));
 
 const mockAuth = vi.mocked(auth);
 const mockCreateDb = vi.mocked(createCollectionDb);
+const mockUpdateDb = vi.mocked(updateCollectionDb);
+const mockDeleteDb = vi.mocked(deleteCollectionDb);
 const mockGetUserCollectionsDb = vi.mocked(getUserCollectionsDb);
 
 beforeEach(() => {
@@ -112,5 +121,88 @@ describe('createCollection action', () => {
       name: 'Quick Notes',
       description: null,
     });
+  });
+});
+
+describe('updateCollection action', () => {
+  it('returns unauthorized when not logged in', async () => {
+    mockAuth.mockResolvedValue(null as never);
+
+    const result = await updateCollection({ id: 'col-1', name: 'Test' });
+
+    expect(result).toEqual({ success: false, error: 'Unauthorized' });
+    expect(mockUpdateDb).not.toHaveBeenCalled();
+  });
+
+  it('returns validation error for empty name', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'user-1' } } as never);
+
+    const result = await updateCollection({ id: 'col-1', name: '' });
+
+    expect(result).toEqual({ success: false, error: 'Name is required' });
+    expect(mockUpdateDb).not.toHaveBeenCalled();
+  });
+
+  it('updates collection successfully', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'user-1' } } as never);
+    mockUpdateDb.mockResolvedValue({
+      id: 'col-1',
+      name: 'Updated',
+      description: 'New desc',
+    } as never);
+
+    const result = await updateCollection({
+      id: 'col-1',
+      name: 'Updated',
+      description: 'New desc',
+    });
+
+    expect(result).toEqual({
+      success: true,
+      data: { id: 'col-1', name: 'Updated' },
+    });
+    expect(mockUpdateDb).toHaveBeenCalledWith('user-1', 'col-1', {
+      name: 'Updated',
+      description: 'New desc',
+    });
+  });
+
+  it('returns error when collection not found', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'user-1' } } as never);
+    mockUpdateDb.mockRejectedValue(new Error('Record not found'));
+
+    const result = await updateCollection({ id: 'nonexistent', name: 'Test' });
+
+    expect(result).toEqual({ success: false, error: 'Collection not found' });
+  });
+});
+
+describe('deleteCollection action', () => {
+  it('returns unauthorized when not logged in', async () => {
+    mockAuth.mockResolvedValue(null as never);
+
+    const result = await deleteCollection('col-1');
+
+    expect(result).toEqual({ success: false, error: 'Unauthorized' });
+    expect(mockDeleteDb).not.toHaveBeenCalled();
+  });
+
+  it('deletes collection successfully', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'user-1' } } as never);
+    mockDeleteDb.mockResolvedValue({ id: 'col-1' } as never);
+
+    const result = await deleteCollection('col-1');
+
+    expect(result).toEqual({ success: true, data: { id: 'col-1' } });
+    expect(mockDeleteDb).toHaveBeenCalledWith('user-1', 'col-1');
+  });
+
+  it('returns error when collection not found', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'user-1' } } as never);
+    mockDeleteDb.mockRejectedValue(new Error('Record not found'));
+
+    const result = await deleteCollection('nonexistent');
+
+    expect(result).toEqual({ success: false, error: 'Collection not found' });
   });
 });

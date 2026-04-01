@@ -1,10 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getRecentCollections, getSidebarCollections, createCollection, getUserCollections, getAllCollections, getCollectionById } from './collections';
+import { getRecentCollections, getSidebarCollections, createCollection, getUserCollections, getAllCollections, getCollectionById, updateCollection, deleteCollection } from './collections';
 import { prisma } from '@/lib/prisma';
 
 const mockCollectionFindMany = vi.mocked(prisma.collection.findMany);
 const mockCollectionCreate = vi.mocked(prisma.collection.create);
 const mockCollectionFindFirst = vi.mocked(prisma.collection.findFirst);
+const mockCollectionUpdate = vi.mocked(prisma.collection.update);
+const mockCollectionDelete = vi.mocked(prisma.collection.delete);
 
 const snippetType = { id: 'type-1', name: 'snippet', icon: 'Code', color: '#3b82f6' };
 const promptType = { id: 'type-2', name: 'prompt', icon: 'Sparkles', color: '#8b5cf6' };
@@ -276,5 +278,66 @@ describe('getCollectionById', () => {
     const result = await getCollectionById('user-1', 'nonexistent');
 
     expect(result).toBeNull();
+  });
+});
+
+describe('updateCollection', () => {
+  it('updates name and description scoped to user', async () => {
+    mockCollectionUpdate.mockResolvedValue({
+      id: 'col-1',
+      name: 'Updated Name',
+      description: 'Updated desc',
+    } as never);
+
+    const result = await updateCollection('user-1', 'col-1', {
+      name: 'Updated Name',
+      description: 'Updated desc',
+    });
+
+    expect(result).toEqual({
+      id: 'col-1',
+      name: 'Updated Name',
+      description: 'Updated desc',
+    });
+    expect(mockCollectionUpdate).toHaveBeenCalledWith({
+      where: { id: 'col-1', userId: 'user-1' },
+      data: { name: 'Updated Name', description: 'Updated desc' },
+      select: { id: true, name: true, description: true },
+    });
+  });
+
+  it('sets description to null', async () => {
+    mockCollectionUpdate.mockResolvedValue({
+      id: 'col-1',
+      name: 'No Desc',
+      description: null,
+    } as never);
+
+    const result = await updateCollection('user-1', 'col-1', {
+      name: 'No Desc',
+      description: null,
+    });
+
+    expect(result.description).toBeNull();
+  });
+});
+
+describe('deleteCollection', () => {
+  it('deletes collection scoped to user', async () => {
+    mockCollectionDelete.mockResolvedValue({ id: 'col-1' } as never);
+
+    const result = await deleteCollection('user-1', 'col-1');
+
+    expect(result).toEqual({ id: 'col-1' });
+    expect(mockCollectionDelete).toHaveBeenCalledWith({
+      where: { id: 'col-1', userId: 'user-1' },
+      select: { id: true },
+    });
+  });
+
+  it('throws when collection not found', async () => {
+    mockCollectionDelete.mockRejectedValue(new Error('Record not found'));
+
+    await expect(deleteCollection('user-1', 'nonexistent')).rejects.toThrow('Record not found');
   });
 });

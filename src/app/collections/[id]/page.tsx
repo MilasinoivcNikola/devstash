@@ -5,6 +5,7 @@ import { redirect, notFound } from 'next/navigation';
 import { ItemsGridWrapper } from '@/components/items/ItemsClientWrapper';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import CollectionDetailActions from '@/components/collections/CollectionDetailActions';
 
 export default async function CollectionDetailPage({
   params,
@@ -32,13 +33,18 @@ export default async function CollectionDetailPage({
           <ArrowLeft className="h-4 w-4" />
           Collections
         </Link>
-        <h1 className="text-2xl font-bold text-foreground">{collection.name}</h1>
-        {collection.description && (
-          <p className="text-sm text-muted-foreground mt-0.5">{collection.description}</p>
-        )}
-        <p className="text-sm text-muted-foreground mt-0.5">
-          {items.length} item{items.length !== 1 ? 's' : ''}
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">{collection.name}</h1>
+            {collection.description && (
+              <p className="text-sm text-muted-foreground mt-0.5">{collection.description}</p>
+            )}
+            <p className="text-sm text-muted-foreground mt-0.5">
+              {items.length} item{items.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <CollectionDetailActions collection={collection} />
+        </div>
       </div>
 
       {items.length === 0 ? (

@@ -203,6 +203,32 @@ export async function getCollectionById(userId: string, collectionId: string) {
   });
 }
 
+export async function updateCollection(
+  userId: string,
+  collectionId: string,
+  data: { name: string; description: string | null }
+) {
+  return prisma.collection.update({
+    where: { id: collectionId, userId },
+    data: {
+      name: data.name,
+      description: data.description,
+    },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+    },
+  });
+}
+
+export async function deleteCollection(userId: string, collectionId: string) {
+  return prisma.collection.delete({
+    where: { id: collectionId, userId },
+    select: { id: true },
+  });
+}
+
 export async function getSidebarCollections(userId: string): Promise<{
   favorites: SidebarCollection[];
   recent: SidebarCollection[];
