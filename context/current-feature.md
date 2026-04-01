@@ -1,29 +1,14 @@
-# Current Feature: Global Search / Command Palette
+# Current Feature
 
 ## Status
 
-In Progress
-
 ## Goals
-
-- Open command palette with Cmd+K (Mac) / Ctrl+K (Windows)
-- Fuzzy search across all items and collections
-- Grouped results: Items section, Collections section
-- Keyboard navigation (arrow keys, Enter to select)
-- Show item type icon and collection item count
-- Navigate to item drawer or collection page on select
-- TopBar search input opens palette on click
-- Show ⌘K hint in search input placeholder
 
 ## Notes
 
-- Use shadcn `cmdk` component (Command)
-- Client-side fuzzy search (no server round-trips)
-- Pre-fetch searchable data on app load
-- Search data: items (id, title, type, content preview), collections (id, name, itemCount)
-- Reuse existing data fetching functions
-
 ## History
+
+- **2026-04-01** — Global search command palette: Cmd+K / Ctrl+K opens a `CommandDialog` (shadcn cmdk) with fuzzy search across all user items and collections; TopBar search input replaced with clickable trigger that opens the palette; results grouped into Items (with type icon + color) and Collections (with item count) sections; selecting an item opens the global `ItemDrawer`; selecting a collection navigates to `/collections/[id]`; `getSearchItems` and `getSearchCollections` DB queries (lightweight select with minimal fields); `fetchSearchData` server action (auth check, parallel fetch); `CommandPalette` component in `DashboardShell` with keyboard shortcut listener; search data fetched on first open and cached; 3 new tests (server action auth guard, happy path, user scoping).
 
 - **2026-04-01** — Collection edit, delete & favorite actions: `/collections/[id]` detail page now has Edit, Delete, and Favorite (disabled placeholder) buttons; Edit opens `EditCollectionDialog` modal (name + description); Delete opens `DeleteCollectionDialog` confirmation (redirects to `/collections`); collection cards on `/collections` and dashboard use `CollectionCardMenu` (3-dot dropdown with Edit, Delete, Favorite); cards restructured with stretched-link pattern (`<div>` + absolute `<Link>` overlay) so dropdown dialogs don't trigger navigation; `updateCollection` and `deleteCollection` DB queries (user-scoped); `updateCollection` and `deleteCollection` server actions (Zod validation, auth check, `{ success, data | error }` pattern); items are never deleted when a collection is deleted (cascade removes only join rows); 11 new tests (4 DB, 7 action).
 
