@@ -47,7 +47,10 @@ export default async function ItemsTypePage({
           <p className="text-muted-foreground text-sm">No {typeSlug} yet.</p>
         </div>
       ) : (
-        <ItemsGridWrapper items={items} layout={typeName === 'image' ? 'gallery' : 'grid'} />
+        <ItemsGridWrapper
+          items={items}
+          layout={typeName === 'image' ? 'gallery' : typeName === 'file' ? 'file-list' : 'grid'}
+        />
       )}
     </div>
   );

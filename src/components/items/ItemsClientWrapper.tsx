@@ -4,10 +4,75 @@ import { useState } from 'react';
 import ItemDrawer from './ItemDrawer';
 import type { ItemWithMeta } from '@/lib/db/items';
 import { ICON_MAP } from '@/lib/constants/item-types';
-import { Star, Pin } from 'lucide-react';
+import { Star, Pin, Download, FileText, FileCode, FileArchive, FileImage, FileVideo, FileAudio, File } from 'lucide-react';
 
 function formatDate(date: Date | string) {
   return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function formatFileSize(bytes: number | null): string {
+  if (bytes === null) return '—';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function getFileIcon(fileName: string | null) {
+  if (!fileName) return File;
+  const ext = fileName.split('.').pop()?.toLowerCase() ?? '';
+  if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif'].includes(ext)) return FileImage;
+  if (['mp4', 'mov', 'avi', 'webm', 'mkv'].includes(ext)) return FileVideo;
+  if (['mp3', 'wav', 'ogg', 'flac', 'm4a'].includes(ext)) return FileAudio;
+  if (['zip', 'tar', 'gz', 'bz2', 'rar', '7z'].includes(ext)) return FileArchive;
+  if (['js', 'ts', 'jsx', 'tsx', 'py', 'rb', 'go', 'rs', 'java', 'c', 'cpp', 'cs', 'php', 'sh', 'html', 'css', 'json', 'yaml', 'yml', 'toml', 'xml'].includes(ext)) return FileCode;
+  if (['pdf', 'doc', 'docx', 'txt', 'md', 'csv', 'xls', 'xlsx'].includes(ext)) return FileText;
+  return File;
+}
+
+function FileListRow({
+  item,
+  onClick,
+}: {
+  item: ItemWithMeta;
+  onClick: () => void;
+}) {
+  const FileIcon = getFileIcon(item.fileName);
+  const downloadUrl = item.fileUrl
+    ? `/api/download?key=${encodeURIComponent(item.fileUrl)}&download=1`
+    : null;
+
+  return (
+    <button
+      onClick={onClick}
+      className="group bg-card border border-border rounded-lg px-4 py-3 flex items-center gap-4 w-full text-left hover:bg-accent/40 transition-colors cursor-pointer"
+    >
+      <div className="h-9 w-9 rounded-md flex items-center justify-center shrink-0 bg-muted">
+        <FileIcon className="h-4 w-4 text-muted-foreground" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-foreground truncate">{item.fileName ?? item.title}</p>
+        <p className="text-xs text-muted-foreground truncate mt-0.5 sm:hidden">
+          {formatFileSize(item.fileSize)} · {formatDate(item.createdAt)}
+        </p>
+      </div>
+      <span className="text-xs text-muted-foreground shrink-0 hidden sm:block w-20 text-right">
+        {formatFileSize(item.fileSize)}
+      </span>
+      <span className="text-xs text-muted-foreground shrink-0 hidden sm:block w-24 text-right">
+        {formatDate(item.createdAt)}
+      </span>
+      {downloadUrl && (
+        <a
+          href={downloadUrl}
+          onClick={(e) => e.stopPropagation()}
+          className="shrink-0 h-8 w-8 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          title="Download"
+        >
+          <Download className="h-4 w-4" />
+        </a>
+      )}
+    </button>
+  );
 }
 
 function ImageThumbnailCard({
@@ -115,7 +180,7 @@ function ClickableItemCard({
 interface ItemsGridWrapperProps {
   items: ItemWithMeta[];
   showTypeBadge?: boolean;
-  layout?: 'grid' | 'list' | 'gallery';
+  layout?: 'grid' | 'list' | 'gallery' | 'file-list';
 }
 
 export function ItemsGridWrapper({ items, showTypeBadge, layout = 'grid' }: ItemsGridWrapperProps) {
@@ -123,32 +188,43 @@ export function ItemsGridWrapper({ items, showTypeBadge, layout = 'grid' }: Item
 
   return (
     <>
-      <div
-        className={
-          layout === 'gallery'
-            ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3'
-            : layout === 'grid'
-            ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3'
-            : 'flex flex-col gap-3'
-        }
-      >
-        {items.map((item) =>
-          layout === 'gallery' ? (
-            <ImageThumbnailCard
+      {layout === 'file-list' && (
+        <div className="flex flex-col gap-1.5">
+          {items.map((item) => (
+            <FileListRow
               key={item.id}
               item={item}
               onClick={() => setActiveItemId(item.id)}
             />
-          ) : (
-            <ClickableItemCard
-              key={item.id}
-              item={item}
-              showTypeBadge={showTypeBadge}
-              onClick={() => setActiveItemId(item.id)}
-            />
-          )
-        )}
-      </div>
+          ))}
+        </div>
+      )}
+      {layout !== 'file-list' && (
+        <div
+          className={
+            layout === 'gallery' || layout === 'grid'
+              ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3'
+              : 'flex flex-col gap-3'
+          }
+        >
+          {items.map((item) =>
+            layout === 'gallery' ? (
+              <ImageThumbnailCard
+                key={item.id}
+                item={item}
+                onClick={() => setActiveItemId(item.id)}
+              />
+            ) : (
+              <ClickableItemCard
+                key={item.id}
+                item={item}
+                showTypeBadge={showTypeBadge}
+                onClick={() => setActiveItemId(item.id)}
+              />
+            )
+          )}
+        </div>
+      )}
       <ItemDrawer itemId={activeItemId} onClose={() => setActiveItemId(null)} />
     </>
   );
