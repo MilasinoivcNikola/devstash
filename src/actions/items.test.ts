@@ -54,7 +54,7 @@ describe('deleteItem server action', () => {
 
   it('returns error when item not found or not owned', async () => {
     mockAuth.mockResolvedValue(session as never);
-    mockDeleteItemDb.mockResolvedValue(false);
+    mockDeleteItemDb.mockResolvedValue({ deleted: false, fileUrl: null });
 
     const result = await deleteItem('item-99');
 
@@ -64,7 +64,7 @@ describe('deleteItem server action', () => {
 
   it('returns success when item is deleted', async () => {
     mockAuth.mockResolvedValue(session as never);
-    mockDeleteItemDb.mockResolvedValue(true);
+    mockDeleteItemDb.mockResolvedValue({ deleted: true, fileUrl: null });
 
     const result = await deleteItem('item-1');
 
@@ -73,7 +73,7 @@ describe('deleteItem server action', () => {
 
   it('calls db delete with correct userId and itemId', async () => {
     mockAuth.mockResolvedValue(session as never);
-    mockDeleteItemDb.mockResolvedValue(true);
+    mockDeleteItemDb.mockResolvedValue({ deleted: true, fileUrl: null });
 
     await deleteItem('item-1');
 

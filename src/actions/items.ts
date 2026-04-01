@@ -4,8 +4,9 @@ import { z } from 'zod';
 import { auth } from '@/auth';
 import { updateItem as updateItemDb, deleteItem as deleteItemDb, createItem as createItemDb } from '@/lib/db/items';
 import type { ItemDetail } from '@/lib/db/items';
+import { deleteFromR2 } from '@/lib/r2';
 
-const ITEM_TYPE_VALUES = ['snippet', 'prompt', 'command', 'note', 'link'] as const;
+const ITEM_TYPE_VALUES = ['snippet', 'prompt', 'command', 'note', 'link', 'file', 'image'] as const;
 
 const CreateItemSchema = z.object({
   title: z.string().trim().min(1, 'Title is required'),
@@ -18,6 +19,9 @@ const CreateItemSchema = z.object({
     .nullable()
     .optional()
     .or(z.literal('').transform(() => null)),
+  fileUrl: z.string().nullable().optional(),
+  fileName: z.string().nullable().optional(),
+  fileSize: z.number().nullable().optional(),
   language: z.string().trim().nullable().optional(),
   tags: z.array(z.string().trim().min(1)),
   itemTypeName: z.enum(ITEM_TYPE_VALUES),
@@ -45,12 +49,18 @@ export async function createItem(
   if (data.itemTypeName === 'link' && !data.url) {
     return { success: false, error: 'URL is required for link items' };
   }
+  if ((data.itemTypeName === 'file' || data.itemTypeName === 'image') && !data.fileUrl) {
+    return { success: false, error: 'A file upload is required' };
+  }
 
   const created = await createItemDb(userId, {
     title: data.title,
     description: data.description ?? null,
     content: data.content ?? null,
     url: data.url ?? null,
+    fileUrl: data.fileUrl ?? null,
+    fileName: data.fileName ?? null,
+    fileSize: data.fileSize ?? null,
     language: data.language ?? null,
     tags: data.tags,
     itemTypeName: data.itemTypeName,
@@ -127,9 +137,17 @@ export async function deleteItem(
     return { success: false, error: 'Unauthorized' };
   }
 
-  const deleted = await deleteItemDb(userId, itemId);
-  if (!deleted) {
+  const result = await deleteItemDb(userId, itemId);
+  if (!result.deleted) {
     return { success: false, error: 'Item not found' };
+  }
+
+  if (result.fileUrl) {
+    try {
+      await deleteFromR2(result.fileUrl);
+    } catch {
+      // Non-fatal: item is deleted from DB, R2 cleanup failed silently
+    }
   }
 
   return { success: true };

@@ -133,22 +133,23 @@ describe('updateItem', () => {
 });
 
 describe('deleteItem', () => {
-  it('returns false when item does not belong to user', async () => {
+  it('returns deleted: false when item does not belong to user', async () => {
     mockFindFirst.mockResolvedValue(null);
 
     const result = await deleteItem('user-1', 'item-99');
 
-    expect(result).toBe(false);
+    expect(result.deleted).toBe(false);
+    expect(result.fileUrl).toBeNull();
     expect(mockDelete).not.toHaveBeenCalled();
   });
 
-  it('deletes item and returns true when ownership check passes', async () => {
+  it('deletes item and returns deleted: true when ownership check passes', async () => {
     mockFindFirst.mockResolvedValue(baseItem as never);
     mockDelete.mockResolvedValue(baseItem as never);
 
     const result = await deleteItem('user-1', 'item-1');
 
-    expect(result).toBe(true);
+    expect(result.deleted).toBe(true);
     expect(mockDelete).toHaveBeenCalledWith({ where: { id: 'item-1' } });
   });
 

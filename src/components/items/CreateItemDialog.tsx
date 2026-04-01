@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Code, Sparkles, Terminal, StickyNote, Link } from 'lucide-react';
+import { Plus, Code, Sparkles, Terminal, StickyNote, Link, File, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,6 +14,7 @@ import {
 import { createItem } from '@/actions/items';
 import CodeEditor from '@/components/items/CodeEditor';
 import MarkdownEditor from '@/components/items/MarkdownEditor';
+import FileUpload, { type UploadedFile } from '@/components/items/FileUpload';
 
 const TYPES = [
   { name: 'snippet', label: 'Snippet', icon: Code, color: '#3b82f6' },
@@ -21,6 +22,8 @@ const TYPES = [
   { name: 'command', label: 'Command', icon: Terminal, color: '#f97316' },
   { name: 'note', label: 'Note', icon: StickyNote, color: '#fde047' },
   { name: 'link', label: 'Link', icon: Link, color: '#10b981' },
+  { name: 'file', label: 'File', icon: File, color: '#6b7280' },
+  { name: 'image', label: 'Image', icon: Image, color: '#ec4899' },
 ] as const;
 
 type TypeName = (typeof TYPES)[number]['name'];
@@ -28,6 +31,7 @@ type TypeName = (typeof TYPES)[number]['name'];
 const CONTENT_TYPES = new Set<TypeName>(['snippet', 'prompt', 'command', 'note']);
 const LANGUAGE_TYPES = new Set<TypeName>(['snippet', 'command']);
 const MARKDOWN_TYPES = new Set<TypeName>(['prompt', 'note']);
+const FILE_TYPES = new Set<TypeName>(['file', 'image']);
 
 function inputClass(multiline?: boolean) {
   const base =
@@ -72,17 +76,20 @@ export default function CreateItemDialog({ defaultType, triggerLabel }: CreateIt
   const [open, setOpen] = useState(false);
   const [selectedType, setSelectedType] = useState<TypeName>(defaultType ?? 'snippet');
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [uploadedFile, setUploadedFile] = useState<UploadedFile | null>(null);
   const [saving, setSaving] = useState(false);
 
   const showContent = CONTENT_TYPES.has(selectedType);
   const showLanguage = LANGUAGE_TYPES.has(selectedType);
   const showMarkdown = MARKDOWN_TYPES.has(selectedType);
   const showUrl = selectedType === 'link';
+  const showFile = FILE_TYPES.has(selectedType);
 
   function handleOpenChange(next: boolean) {
     if (!next) {
       setForm(EMPTY_FORM);
       setSelectedType(defaultType ?? 'snippet');
+      setUploadedFile(null);
     }
     setOpen(next);
   }
@@ -106,6 +113,9 @@ export default function CreateItemDialog({ defaultType, triggerLabel }: CreateIt
       description: form.description || null,
       content: form.content || null,
       url: form.url || null,
+      fileUrl: uploadedFile?.key ?? null,
+      fileName: uploadedFile?.fileName ?? null,
+      fileSize: uploadedFile?.fileSize ?? null,
       language: form.language || null,
       tags,
       itemTypeName: selectedType,
@@ -124,7 +134,8 @@ export default function CreateItemDialog({ defaultType, triggerLabel }: CreateIt
 
   const canSubmit =
     form.title.trim().length > 0 &&
-    (selectedType !== 'link' || form.url.trim().length > 0);
+    (selectedType !== 'link' || form.url.trim().length > 0) &&
+    (!showFile || uploadedFile !== null);
 
   return (
     <>
@@ -197,6 +208,20 @@ export default function CreateItemDialog({ defaultType, triggerLabel }: CreateIt
                   value={form.url}
                   onChange={set('url')}
                   placeholder="https://..."
+                />
+              </div>
+            )}
+
+            {/* File upload — file / image types */}
+            {showFile && (
+              <div>
+                <FieldLabel required>
+                  {selectedType === 'image' ? 'Image' : 'File'}
+                </FieldLabel>
+                <FileUpload
+                  itemType={selectedType as 'file' | 'image'}
+                  value={uploadedFile}
+                  onChange={setUploadedFile}
                 />
               </div>
             )}

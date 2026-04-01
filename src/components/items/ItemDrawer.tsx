@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Star, Pin, Copy, Pencil, Trash2, FolderOpen, Calendar, Save, X } from 'lucide-react';
+import { Star, Pin, Copy, Pencil, Trash2, FolderOpen, Calendar, Save, X, Download, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { updateItem, deleteItem } from '@/actions/items';
 import type { ItemDetail } from '@/lib/db/items';
@@ -228,6 +228,7 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
   const showLanguage = LANGUAGE_TYPES.has(typeName);
   const showMarkdown = MARKDOWN_TYPES.has(typeName);
   const showUrl = typeName === 'link';
+  const showFile = typeName === 'file' || typeName === 'image';
 
   const formatDate = (date: string | Date) =>
     new Date(date).toLocaleDateString('en-US', {
@@ -471,6 +472,50 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
                         className="text-sm text-blue-400 hover:underline break-all"
                       >
                         {item.url}
+                      </a>
+                    </section>
+                  )}
+
+                  {/* File / Image */}
+                  {showFile && item.fileUrl && (
+                    <section>
+                      <FieldLabel>{typeName === 'image' ? 'Image' : 'File'}</FieldLabel>
+                      {typeName === 'image' ? (
+                        <div className="space-y-2">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={`/api/download?key=${encodeURIComponent(item.fileUrl)}`}
+                            alt={item.fileName ?? 'Image'}
+                            className="w-full rounded-md border border-border object-contain max-h-64 bg-muted/30"
+                          />
+                          {item.fileName && (
+                            <p className="text-xs text-muted-foreground">{item.fileName}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-3 rounded-md border border-border bg-background px-3 py-2.5">
+                          <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-foreground truncate">
+                              {item.fileName ?? 'File'}
+                            </p>
+                            {item.fileSize != null && (
+                              <p className="text-xs text-muted-foreground">
+                                {item.fileSize < 1024 * 1024
+                                  ? `${(item.fileSize / 1024).toFixed(1)} KB`
+                                  : `${(item.fileSize / (1024 * 1024)).toFixed(1)} MB`}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      <a
+                        href={`/api/download?key=${encodeURIComponent(item.fileUrl)}`}
+                        download={item.fileName ?? undefined}
+                        className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium border border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+                      >
+                        <Download className="h-3.5 w-3.5" />
+                        Download
                       </a>
                     </section>
                   )}

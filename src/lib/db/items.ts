@@ -139,6 +139,9 @@ export type CreateItemData = {
   description: string | null;
   content: string | null;
   url: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  fileSize: number | null;
   language: string | null;
   tags: string[];
   itemTypeName: string;
@@ -158,6 +161,9 @@ export async function createItem(userId: string, data: CreateItemData): Promise<
       description: data.description,
       content: data.content,
       url: data.url,
+      fileUrl: data.fileUrl,
+      fileName: data.fileName,
+      fileSize: data.fileSize,
       language: data.language,
       contentType,
       userId,
@@ -242,11 +248,14 @@ export async function updateItem(userId: string, id: string, data: UpdateItemDat
   };
 }
 
-export async function deleteItem(userId: string, id: string): Promise<boolean> {
+export async function deleteItem(
+  userId: string,
+  id: string
+): Promise<{ deleted: boolean; fileUrl: string | null }> {
   const item = await prisma.item.findFirst({ where: { id, userId } });
-  if (!item) return false;
+  if (!item) return { deleted: false, fileUrl: null };
   await prisma.item.delete({ where: { id } });
-  return true;
+  return { deleted: true, fileUrl: item.fileUrl };
 }
 
 export async function getSidebarItemTypes(userId: string): Promise<SidebarItemType[]> {
