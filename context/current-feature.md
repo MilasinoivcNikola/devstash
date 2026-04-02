@@ -1,23 +1,10 @@
-# Current Feature: Favorites Page
+# Current Feature
 
 ## Status
-In Progress
 
 ## Goals
-- Add star icon button to TopBar linking to /favorites
-- Create /favorites route with middleware protection
-- Fetch all user favorited items and collections from DB
-- Compact list view (VS Code/terminal style, not cards) with monospace font, minimal padding, high density
-- Each row: type icon, title, type badge, date added
-- Separate sections for items and collections with counts
-- Click item opens ItemDrawer, click collection navigates to /collections/[id]
-- Empty state when no favorites
-- Sort by most recently favorited (updatedAt)
 
 ## Notes
-- UI should be minimal: no cards or heavy borders, clean lines only, subtle hover states
-- This is a read-only view page — no CRUD actions beyond what ItemDrawer already provides
-- Favorited items/collections already have `isFavorite` boolean fields in the DB
 
 ## History
 
@@ -64,3 +51,4 @@ In Progress
 - **2026-04-02** — Pagination: added pagination to `/items/[type]` and `/collections/[id]` pages with `skip/take` + `count` DB queries; constants `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`, `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10` in `src/lib/constants/item-types.ts`; reusable `Pagination` component (`src/components/shared/Pagination.tsx`) with numbered page links, prev/next (greyed out at bounds), and ellipsis; `getItemsByType` and `getItemsByCollection` return `{ items, total }`; dashboard calls use named constants; pages read `?page=` from searchParams; 2 tests updated for new return types.
 - **2026-04-02** — Settings page: created `/settings` route with DashboardShell layout; moved `ChangePasswordForm`, `DeleteAccountDialog`, and `actions.ts` (change password + delete account) from `src/app/profile/` to `src/app/settings/`; added Settings link with gear icon to sidebar user dropdown (between Profile and Sign Out); protected `/settings` in `src/proxy.ts` middleware matcher; simplified profile page to show only user info and usage stats; `changePasswordAction` now redirects to `/settings?passwordChanged=1`; 10 unit tests for settings server actions.
 - **2026-04-02** — Editor preferences settings: added `editorPreferences` JSON column on User model with migration `20260402113450_add_editor_preferences`; `src/lib/db/editor-preferences.ts` with `getEditorPreferences` and `updateEditorPreferences` DB queries (defaults: fontSize 12, tabSize 2, wordWrap on, minimap off, theme vs-dark); `updateEditorPreferencesAction` server action with validation for theme, fontSize, tabSize; `EditorPreferencesContext` (`src/contexts/EditorPreferencesContext.tsx`) with optimistic updates, wired into `DashboardShell` and all 5 layouts; `EditorPreferencesForm` on `/settings` page with font size, tab size, theme dropdowns and word wrap, minimap toggles — auto-saves on change with success toast; `CodeEditor` component now consumes preferences from context and supports custom Monaco themes (monokai, github-dark) via `beforeMount`; 10 new unit tests (4 DB query, 6 server action).
+- **2026-04-02** — Favorites page: created `/favorites` route with DashboardShell layout and middleware protection; `getFavoriteItems` DB query in `src/lib/db/items.ts` and `getFavoriteCollections` in `src/lib/db/collections.ts` (both sorted by `updatedAt` desc); compact terminal-style list view (`FavoritesList` client component) with monospace font, minimal padding, no cards — items section (type icon, title, type badge, date; click opens ItemDrawer) and collections section (folder icon, name, item count, date; click navigates to `/collections/[id]`); counts in page header and section headers; empty state when no favorites; star icon button added to TopBar linking to `/favorites`.
