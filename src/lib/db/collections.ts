@@ -252,6 +252,35 @@ export async function getSearchCollections(userId: string): Promise<SearchCollec
   }));
 }
 
+export type FavoriteCollection = {
+  id: string;
+  name: string;
+  description: string | null;
+  itemCount: number;
+  updatedAt: Date;
+};
+
+export async function getFavoriteCollections(userId: string): Promise<FavoriteCollection[]> {
+  const collections = await prisma.collection.findMany({
+    where: { userId, isFavorite: true },
+    select: {
+      id: true,
+      name: true,
+      description: true,
+      updatedAt: true,
+      _count: { select: { items: true } },
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+  return collections.map((c) => ({
+    id: c.id,
+    name: c.name,
+    description: c.description,
+    itemCount: c._count.items,
+    updatedAt: c.updatedAt,
+  }));
+}
+
 export async function getSidebarCollections(userId: string): Promise<{
   favorites: SidebarCollection[];
   recent: SidebarCollection[];

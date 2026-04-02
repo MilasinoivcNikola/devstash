@@ -1,6 +1,6 @@
 'use client';
 
-import { Menu, Search } from "lucide-react";
+import { Menu, Search, Star } from "lucide-react";
 import Link from "next/link";
 import CreateItemDialog from "@/components/items/CreateItemDialog";
 import CreateCollectionDialog from "@/components/collections/CreateCollectionDialog";
@@ -51,6 +51,13 @@ export default function TopBar({ onSidebarOpen, logoHref = '/', onSearchClick }:
 
       {/* Actions */}
       <div className="hidden md:flex items-center gap-2 justify-end shrink-0">
+        <Link
+          href="/favorites"
+          className="h-9 w-9 flex items-center justify-center rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          title="Favorites"
+        >
+          <Star className="h-4 w-4" />
+        </Link>
         <CreateCollectionDialog />
         <CreateItemDialog />
       </div>
