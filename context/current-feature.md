@@ -1,28 +1,10 @@
-# Current Feature: Editor Preferences Settings
+# Current Feature
 
 ## Status
-In Progress
 
 ## Goals
-- Add font size dropdown to settings page
-- Add tab size dropdown to settings page
-- Add word wrap toggle (default: on)
-- Add minimap toggle (default: off)
-- Add theme dropdown with vs-dark, monokai, github-dark options (default: vs-dark)
-- Store preferences in JSON column `editorPreferences` on User model
-- Create and run a database migration (not db push)
-- Create server action to update preferences
-- Apply settings to Monaco editor component (CodeEditor)
-- Auto-save on change (no save button)
-- Show success toast on save
-- Create EditorPreferencesContext for client components
 
 ## Notes
-- Preferences are per-user, stored as a JSON column on the User model
-- All settings should auto-save immediately on change — no explicit save button
-- The EditorPreferencesContext should provide preferences to any client component that needs them (CodeEditor in ItemDrawer, CreateItemDialog)
-- Default values: word wrap on, minimap off, theme vs-dark
-- Theme options: vs-dark, monokai, github-dark
 
 ## History
 
@@ -68,3 +50,4 @@ In Progress
 - **2026-04-01** — Global search command palette: Cmd+K / Ctrl+K opens a `CommandDialog` (shadcn cmdk) with fuzzy search across all user items and collections; TopBar search input replaced with clickable trigger that opens the palette; results grouped into Items (with type icon + color) and Collections (with item count) sections; selecting an item opens the global `ItemDrawer`; selecting a collection navigates to `/collections/[id]`; `getSearchItems` and `getSearchCollections` DB queries (lightweight select with minimal fields); `fetchSearchData` server action (auth check, parallel fetch); `CommandPalette` component in `DashboardShell` with keyboard shortcut listener; search data fetched on first open and cached; 3 new tests (server action auth guard, happy path, user scoping).
 - **2026-04-02** — Pagination: added pagination to `/items/[type]` and `/collections/[id]` pages with `skip/take` + `count` DB queries; constants `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`, `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10` in `src/lib/constants/item-types.ts`; reusable `Pagination` component (`src/components/shared/Pagination.tsx`) with numbered page links, prev/next (greyed out at bounds), and ellipsis; `getItemsByType` and `getItemsByCollection` return `{ items, total }`; dashboard calls use named constants; pages read `?page=` from searchParams; 2 tests updated for new return types.
 - **2026-04-02** — Settings page: created `/settings` route with DashboardShell layout; moved `ChangePasswordForm`, `DeleteAccountDialog`, and `actions.ts` (change password + delete account) from `src/app/profile/` to `src/app/settings/`; added Settings link with gear icon to sidebar user dropdown (between Profile and Sign Out); protected `/settings` in `src/proxy.ts` middleware matcher; simplified profile page to show only user info and usage stats; `changePasswordAction` now redirects to `/settings?passwordChanged=1`; 10 unit tests for settings server actions.
+- **2026-04-02** — Editor preferences settings: added `editorPreferences` JSON column on User model with migration `20260402113450_add_editor_preferences`; `src/lib/db/editor-preferences.ts` with `getEditorPreferences` and `updateEditorPreferences` DB queries (defaults: fontSize 12, tabSize 2, wordWrap on, minimap off, theme vs-dark); `updateEditorPreferencesAction` server action with validation for theme, fontSize, tabSize; `EditorPreferencesContext` (`src/contexts/EditorPreferencesContext.tsx`) with optimistic updates, wired into `DashboardShell` and all 5 layouts; `EditorPreferencesForm` on `/settings` page with font size, tab size, theme dropdowns and word wrap, minimap toggles — auto-saves on change with success toast; `CodeEditor` component now consumes preferences from context and supports custom Monaco themes (monokai, github-dark) via `beforeMount`; 10 new unit tests (4 DB query, 6 server action).
