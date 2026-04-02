@@ -1,10 +1,29 @@
-# Current Feature
+# Current Feature: Favorite Toggle for Items & Collections
 
 ## Status
+In Progress
 
 ## Goals
+- Wire up the existing placeholder Favorite buttons so they actually toggle `isFavorite` in the database
+- **ItemDrawer**: Star button calls a server action, updates optimistically, shows toast
+- **Collection detail page** (`CollectionDetailActions`): Star button toggles collection favorite, no longer disabled
+- **Collection card menu** (`CollectionCardMenu`): "Favorite" dropdown item toggles collection favorite, no longer disabled
+- All toggles refresh sidebar favorites and relevant lists via `router.refresh()`
+- Unit tests for new DB queries and server actions
 
 ## Notes
+- DB schema already has `isFavorite` on both `Item` and `Collection` models with indexes
+- All three UI buttons exist as disabled/no-op placeholders — just need onClick + server logic
+- Existing read-side queries (`getFavoriteItems`, `getFavoriteCollections`, sidebar, stats) already work
+- Need: `toggleFavoriteItem` and `toggleFavoriteCollection` DB queries + server actions
+- Key files to modify:
+  - `src/lib/db/items.ts` — add `toggleFavoriteItem`
+  - `src/lib/db/collections.ts` — add `toggleFavoriteCollection`
+  - `src/actions/items.ts` — add `toggleFavoriteItemAction`
+  - `src/actions/collections.ts` — add `toggleFavoriteCollectionAction`
+  - `src/components/items/ItemDrawer.tsx` — wire up Star button onClick
+  - `src/components/collections/CollectionDetailActions.tsx` — remove disabled, add onClick
+  - `src/components/collections/CollectionCardMenu.tsx` — remove disabled, add onClick
 
 ## History
 

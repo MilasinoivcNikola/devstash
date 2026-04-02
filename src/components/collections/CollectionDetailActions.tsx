@@ -1,8 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Pencil, Trash2, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { toggleFavoriteCollection } from '@/actions/collections';
 import EditCollectionDialog from './EditCollectionDialog';
 import DeleteCollectionDialog from './DeleteCollectionDialog';
 
@@ -16,8 +19,23 @@ type CollectionDetailActionsProps = {
 };
 
 export default function CollectionDetailActions({ collection }: CollectionDetailActionsProps) {
+  const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(collection.isFavorite);
+
+  async function handleToggleFavorite() {
+    const prev = isFavorite;
+    setIsFavorite(!prev);
+    const result = await toggleFavoriteCollection(collection.id);
+    if (!result.success) {
+      setIsFavorite(prev);
+      toast.error(result.error);
+      return;
+    }
+    toast.success(result.isFavorite ? 'Added to favorites' : 'Removed from favorites');
+    router.refresh();
+  }
 
   return (
     <>
@@ -30,8 +48,12 @@ export default function CollectionDetailActions({ collection }: CollectionDetail
           <Trash2 className="h-3.5 w-3.5 mr-1.5" />
           Delete
         </Button>
-        <Button variant="outline" size="icon" className="h-8 w-8" disabled>
-          <Star className="h-3.5 w-3.5" />
+        <Button variant="outline" size="icon" className="h-8 w-8" onClick={handleToggleFavorite}>
+          <Star
+            className="h-3.5 w-3.5"
+            fill={isFavorite ? '#facc15' : 'none'}
+            stroke={isFavorite ? '#facc15' : 'currentColor'}
+          />
         </Button>
       </div>
 

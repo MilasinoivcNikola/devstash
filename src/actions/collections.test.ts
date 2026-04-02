@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createCollection, getUserCollections, updateCollection, deleteCollection } from './collections';
+import { createCollection, getUserCollections, updateCollection, deleteCollection, toggleFavoriteCollection } from './collections';
 import { auth } from '@/auth';
 import {
   createCollection as createCollectionDb,
   updateCollection as updateCollectionDb,
   deleteCollection as deleteCollectionDb,
   getUserCollections as getUserCollectionsDb,
+  toggleFavoriteCollection as toggleFavoriteCollectionDb,
 } from '@/lib/db/collections';
 
 vi.mock('@/lib/db/collections', () => ({
@@ -13,6 +14,7 @@ vi.mock('@/lib/db/collections', () => ({
   updateCollection: vi.fn(),
   deleteCollection: vi.fn(),
   getUserCollections: vi.fn(),
+  toggleFavoriteCollection: vi.fn(),
 }));
 
 const mockAuth = vi.mocked(auth);
@@ -20,6 +22,7 @@ const mockCreateDb = vi.mocked(createCollectionDb);
 const mockUpdateDb = vi.mocked(updateCollectionDb);
 const mockDeleteDb = vi.mocked(deleteCollectionDb);
 const mockGetUserCollectionsDb = vi.mocked(getUserCollectionsDb);
+const mockToggleFavoriteDb = vi.mocked(toggleFavoriteCollectionDb);
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -174,6 +177,36 @@ describe('updateCollection action', () => {
     const result = await updateCollection({ id: 'nonexistent', name: 'Test' });
 
     expect(result).toEqual({ success: false, error: 'Collection not found' });
+  });
+});
+
+describe('toggleFavoriteCollection action', () => {
+  it('returns unauthorized when not logged in', async () => {
+    mockAuth.mockResolvedValue(null as never);
+
+    const result = await toggleFavoriteCollection('col-1');
+
+    expect(result).toEqual({ success: false, error: 'Unauthorized' });
+    expect(mockToggleFavoriteDb).not.toHaveBeenCalled();
+  });
+
+  it('returns error when collection not found', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'user-1' } } as never);
+    mockToggleFavoriteDb.mockResolvedValue(null);
+
+    const result = await toggleFavoriteCollection('col-99');
+
+    expect(result).toEqual({ success: false, error: 'Collection not found' });
+  });
+
+  it('returns success with new isFavorite value', async () => {
+    mockAuth.mockResolvedValue({ user: { id: 'user-1' } } as never);
+    mockToggleFavoriteDb.mockResolvedValue(true);
+
+    const result = await toggleFavoriteCollection('col-1');
+
+    expect(result).toEqual({ success: true, isFavorite: true });
+    expect(mockToggleFavoriteDb).toHaveBeenCalledWith('user-1', 'col-1');
   });
 });
 

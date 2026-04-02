@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getRecentCollections, getSidebarCollections, createCollection, getUserCollections, getAllCollections, getCollectionById, updateCollection, deleteCollection } from './collections';
+import { getRecentCollections, getSidebarCollections, createCollection, getUserCollections, getAllCollections, getCollectionById, updateCollection, deleteCollection, toggleFavoriteCollection } from './collections';
 import { prisma } from '@/lib/prisma';
 
 const mockCollectionFindMany = vi.mocked(prisma.collection.findMany);
@@ -319,6 +319,45 @@ describe('updateCollection', () => {
     });
 
     expect(result.description).toBeNull();
+  });
+});
+
+describe('toggleFavoriteCollection', () => {
+  it('returns null when collection not found', async () => {
+    mockCollectionFindFirst.mockResolvedValue(null);
+
+    const result = await toggleFavoriteCollection('user-1', 'col-99');
+
+    expect(result).toBeNull();
+    expect(mockCollectionUpdate).not.toHaveBeenCalled();
+  });
+
+  it('flips isFavorite from false to true', async () => {
+    mockCollectionFindFirst.mockResolvedValue({ id: 'col-1', isFavorite: false } as never);
+    mockCollectionUpdate.mockResolvedValue({ isFavorite: true } as never);
+
+    const result = await toggleFavoriteCollection('user-1', 'col-1');
+
+    expect(result).toBe(true);
+    expect(mockCollectionUpdate).toHaveBeenCalledWith({
+      where: { id: 'col-1', userId: 'user-1' },
+      data: { isFavorite: true },
+      select: { isFavorite: true },
+    });
+  });
+
+  it('flips isFavorite from true to false', async () => {
+    mockCollectionFindFirst.mockResolvedValue({ id: 'col-1', isFavorite: true } as never);
+    mockCollectionUpdate.mockResolvedValue({ isFavorite: false } as never);
+
+    const result = await toggleFavoriteCollection('user-1', 'col-1');
+
+    expect(result).toBe(false);
+    expect(mockCollectionUpdate).toHaveBeenCalledWith({
+      where: { id: 'col-1', userId: 'user-1' },
+      data: { isFavorite: false },
+      select: { isFavorite: true },
+    });
   });
 });
 

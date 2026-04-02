@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Star, Pin, Copy, Pencil, Trash2, FolderOpen, Calendar, Save, X, Download, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { updateItem, deleteItem } from '@/actions/items';
+import { updateItem, deleteItem, toggleFavoriteItem } from '@/actions/items';
 import { getUserCollections } from '@/actions/collections';
 import type { ItemDetail } from '@/lib/db/items';
 import CodeEditor from '@/components/items/CodeEditor';
@@ -215,6 +215,20 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
     router.refresh();
   }
 
+  async function handleToggleFavorite() {
+    if (!item || !itemId) return;
+    const prev = item.isFavorite;
+    setItem({ ...item, isFavorite: !prev });
+    const result = await toggleFavoriteItem(itemId);
+    if (!result.success) {
+      setItem({ ...item, isFavorite: prev });
+      toast.error(result.error);
+      return;
+    }
+    toast.success(result.isFavorite ? 'Added to favorites' : 'Removed from favorites');
+    router.refresh();
+  }
+
   async function handleDelete() {
     if (!itemId) return;
     setDeleting(true);
@@ -307,7 +321,7 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
                 </>
               ) : (
                 <>
-                  <ActionButton label="Favorite" active={item.isFavorite} activeColor="#facc15">
+                  <ActionButton label="Favorite" active={item.isFavorite} activeColor="#facc15" onClick={handleToggleFavorite}>
                     <Star
                       className="h-3.5 w-3.5"
                       fill={item.isFavorite ? '#facc15' : 'none'}

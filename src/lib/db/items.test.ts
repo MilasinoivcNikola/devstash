@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemById, updateItem, deleteItem, createItem, getItemsByCollection } from './items';
+import { getItemById, updateItem, deleteItem, createItem, getItemsByCollection, toggleFavoriteItem } from './items';
 import { prisma } from '@/lib/prisma';
 
 const mockFindFirst = vi.mocked(prisma.item.findFirst);
@@ -353,6 +353,45 @@ describe('getItemById', () => {
     expect(result!.content).toBeNull();
     expect(result!.language).toBeNull();
     expect(result!.url).toBeNull();
+  });
+});
+
+describe('toggleFavoriteItem', () => {
+  it('returns null when item does not belong to user', async () => {
+    mockFindFirst.mockResolvedValue(null);
+
+    const result = await toggleFavoriteItem('user-1', 'item-99');
+
+    expect(result).toBeNull();
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
+  it('flips isFavorite from false to true', async () => {
+    mockFindFirst.mockResolvedValue({ ...baseItem, isFavorite: false } as never);
+    mockUpdate.mockResolvedValue({ isFavorite: true } as never);
+
+    const result = await toggleFavoriteItem('user-1', 'item-1');
+
+    expect(result).toBe(true);
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: 'item-1' },
+      data: { isFavorite: true },
+      select: { isFavorite: true },
+    });
+  });
+
+  it('flips isFavorite from true to false', async () => {
+    mockFindFirst.mockResolvedValue({ ...baseItem, isFavorite: true } as never);
+    mockUpdate.mockResolvedValue({ isFavorite: false } as never);
+
+    const result = await toggleFavoriteItem('user-1', 'item-1');
+
+    expect(result).toBe(false);
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: 'item-1' },
+      data: { isFavorite: false },
+      select: { isFavorite: true },
+    });
   });
 });
 

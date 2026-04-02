@@ -351,6 +351,17 @@ export async function getSearchItems(userId: string): Promise<SearchItem[]> {
   }));
 }
 
+export async function toggleFavoriteItem(userId: string, itemId: string): Promise<boolean | null> {
+  const item = await prisma.item.findFirst({ where: { id: itemId, userId } });
+  if (!item) return null;
+  const updated = await prisma.item.update({
+    where: { id: itemId },
+    data: { isFavorite: !item.isFavorite },
+    select: { isFavorite: true },
+  });
+  return updated.isFavorite;
+}
+
 export async function getFavoriteItems(userId: string): Promise<ItemWithMeta[]> {
   const items = await prisma.item.findMany({
     where: { userId, isFavorite: true },
