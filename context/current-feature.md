@@ -1,22 +1,10 @@
-# Pagination
+# Current Feature
 
 ## Status
-In Progress
 
 ## Goals
-- Add pagination to `/items/[type]` pages (21 items per page)
-- Add pagination to `/collections/[id]` pages (21 items per page)
-- Pagination controls at bottom with page numbers and prev/next links
-- Disable (grey out) prev/next when not available
-- Use constants: `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`
-- Dashboard limits: `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10`
-- Only fetch the amount each page requires (no fetching all resources at once)
 
 ## Notes
-- DB queries need `skip`/`take` with count queries for total pages
-- Page number comes from URL search params (`?page=1`)
-- Reusable `Pagination` component for both pages
-- Dashboard queries already have limits, just extract to named constants
 
 ## History
 
@@ -60,3 +48,4 @@ In Progress
 - **2026-04-01** — Collection detail type-grouped layout: `/collections/[id]` now groups items by type with section headers (icon + name + count); image items render as gallery thumbnails (`ImageThumbnailCard`), file items as file-list rows (`FileListRow`), all other types as standard card grid; groups sorted by item count descending; extracted `ItemsSection`, `GroupedItemsGrid`, and `getLayoutForType` into `ItemsClientWrapper.tsx`; added `'grouped'` layout option to `ItemsGridWrapper`.
 - **2026-04-01** — Collection edit, delete & favorite actions: `/collections/[id]` detail page now has Edit, Delete, and Favorite (disabled placeholder) buttons; Edit opens `EditCollectionDialog` modal (name + description); Delete opens `DeleteCollectionDialog` confirmation (redirects to `/collections`); collection cards on `/collections` and dashboard use `CollectionCardMenu` (3-dot dropdown with Edit, Delete, Favorite); cards restructured with stretched-link pattern (`<div>` + absolute `<Link>` overlay) so dropdown dialogs don't trigger navigation; `updateCollection` and `deleteCollection` DB queries (user-scoped); `updateCollection` and `deleteCollection` server actions (Zod validation, auth check, `{ success, data | error }` pattern); items are never deleted when a collection is deleted (cascade removes only join rows); 11 new tests (4 DB, 7 action).
 - **2026-04-01** — Global search command palette: Cmd+K / Ctrl+K opens a `CommandDialog` (shadcn cmdk) with fuzzy search across all user items and collections; TopBar search input replaced with clickable trigger that opens the palette; results grouped into Items (with type icon + color) and Collections (with item count) sections; selecting an item opens the global `ItemDrawer`; selecting a collection navigates to `/collections/[id]`; `getSearchItems` and `getSearchCollections` DB queries (lightweight select with minimal fields); `fetchSearchData` server action (auth check, parallel fetch); `CommandPalette` component in `DashboardShell` with keyboard shortcut listener; search data fetched on first open and cached; 3 new tests (server action auth guard, happy path, user scoping).
+- **2026-04-02** — Pagination: added pagination to `/items/[type]` and `/collections/[id]` pages with `skip/take` + `count` DB queries; constants `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`, `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10` in `src/lib/constants/item-types.ts`; reusable `Pagination` component (`src/components/shared/Pagination.tsx`) with numbered page links, prev/next (greyed out at bounds), and ellipsis; `getItemsByType` and `getItemsByCollection` return `{ items, total }`; dashboard calls use named constants; pages read `?page=` from searchParams; 2 tests updated for new return types.
