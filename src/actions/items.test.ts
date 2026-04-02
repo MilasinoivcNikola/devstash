@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { updateItem, deleteItem, createItem, toggleFavoriteItem } from './items';
+import { updateItem, deleteItem, createItem, toggleFavoriteItem, toggleItemPin } from './items';
 import { auth } from '@/auth';
 import * as itemsDb from '@/lib/db/items';
 
@@ -8,6 +8,7 @@ const mockCreateItemDb = vi.spyOn(itemsDb, 'createItem');
 const mockUpdateItemDb = vi.spyOn(itemsDb, 'updateItem');
 const mockDeleteItemDb = vi.spyOn(itemsDb, 'deleteItem');
 const mockToggleFavoriteItemDb = vi.spyOn(itemsDb, 'toggleFavoriteItem');
+const mockToggleItemPinDb = vi.spyOn(itemsDb, 'toggleItemPin');
 
 const session = { user: { id: 'user-1', email: 'user@test.com' } };
 
@@ -125,6 +126,37 @@ describe('toggleFavoriteItem server action', () => {
 
     expect(result).toEqual({ success: true, isFavorite: true });
     expect(mockToggleFavoriteItemDb).toHaveBeenCalledWith('user-1', 'item-1');
+  });
+});
+
+describe('toggleItemPin server action', () => {
+  it('returns unauthorized when no session', async () => {
+    mockAuth.mockResolvedValue(null);
+
+    const result = await toggleItemPin('item-1');
+
+    expect(result.success).toBe(false);
+    expect((result as { success: false; error: string }).error).toBe('Unauthorized');
+  });
+
+  it('returns error when item not found', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    mockToggleItemPinDb.mockResolvedValue(null);
+
+    const result = await toggleItemPin('item-99');
+
+    expect(result.success).toBe(false);
+    expect((result as { success: false; error: string }).error).toBe('Item not found');
+  });
+
+  it('returns success with new isPinned value', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    mockToggleItemPinDb.mockResolvedValue(true);
+
+    const result = await toggleItemPin('item-1');
+
+    expect(result).toEqual({ success: true, isPinned: true });
+    expect(mockToggleItemPinDb).toHaveBeenCalledWith('user-1', 'item-1');
   });
 });
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { getItemById, updateItem, deleteItem, createItem, getItemsByCollection, toggleFavoriteItem } from './items';
+import { getItemById, updateItem, deleteItem, createItem, getItemsByCollection, toggleFavoriteItem, toggleItemPin } from './items';
 import { prisma } from '@/lib/prisma';
 
 const mockFindFirst = vi.mocked(prisma.item.findFirst);
@@ -391,6 +391,45 @@ describe('toggleFavoriteItem', () => {
       where: { id: 'item-1' },
       data: { isFavorite: false },
       select: { isFavorite: true },
+    });
+  });
+});
+
+describe('toggleItemPin', () => {
+  it('returns null when item does not belong to user', async () => {
+    mockFindFirst.mockResolvedValue(null);
+
+    const result = await toggleItemPin('user-1', 'item-99');
+
+    expect(result).toBeNull();
+    expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
+  it('flips isPinned from false to true', async () => {
+    mockFindFirst.mockResolvedValue({ ...baseItem, isPinned: false } as never);
+    mockUpdate.mockResolvedValue({ isPinned: true } as never);
+
+    const result = await toggleItemPin('user-1', 'item-1');
+
+    expect(result).toBe(true);
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: 'item-1' },
+      data: { isPinned: true },
+      select: { isPinned: true },
+    });
+  });
+
+  it('flips isPinned from true to false', async () => {
+    mockFindFirst.mockResolvedValue({ ...baseItem, isPinned: true } as never);
+    mockUpdate.mockResolvedValue({ isPinned: false } as never);
+
+    const result = await toggleItemPin('user-1', 'item-1');
+
+    expect(result).toBe(false);
+    expect(mockUpdate).toHaveBeenCalledWith({
+      where: { id: 'item-1' },
+      data: { isPinned: false },
+      select: { isPinned: true },
     });
   });
 });

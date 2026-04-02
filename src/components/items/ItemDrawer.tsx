@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Star, Pin, Copy, Pencil, Trash2, FolderOpen, Calendar, Save, X, Download, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import { updateItem, deleteItem, toggleFavoriteItem } from '@/actions/items';
+import { updateItem, deleteItem, toggleFavoriteItem, toggleItemPin } from '@/actions/items';
 import { getUserCollections } from '@/actions/collections';
 import type { ItemDetail } from '@/lib/db/items';
 import CodeEditor from '@/components/items/CodeEditor';
@@ -229,6 +229,20 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
     router.refresh();
   }
 
+  async function handleTogglePin() {
+    if (!item || !itemId) return;
+    const prev = item.isPinned;
+    setItem({ ...item, isPinned: !prev });
+    const result = await toggleItemPin(itemId);
+    if (!result.success) {
+      setItem({ ...item, isPinned: prev });
+      toast.error(result.error);
+      return;
+    }
+    toast.success(result.isPinned ? 'Item pinned' : 'Item unpinned');
+    router.refresh();
+  }
+
   async function handleDelete() {
     if (!itemId) return;
     setDeleting(true);
@@ -329,9 +343,9 @@ export default function ItemDrawer({ itemId, onClose }: ItemDrawerProps) {
                     />
                     Favorite
                   </ActionButton>
-                  <ActionButton label="Pin" active={item.isPinned} activeColor="hsl(var(--foreground))">
-                    <Pin className="h-3.5 w-3.5" />
-                    Pin
+                  <ActionButton label="Pin" active={item.isPinned} activeColor="hsl(var(--foreground))" onClick={handleTogglePin}>
+                    <Pin className="h-3.5 w-3.5" fill={item.isPinned ? 'currentColor' : 'none'} />
+                    {item.isPinned ? 'Unpin' : 'Pin'}
                   </ActionButton>
                   <ActionButton label="Copy content">
                     <Copy className="h-3.5 w-3.5" />

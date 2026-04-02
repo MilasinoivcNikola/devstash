@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 import { auth } from '@/auth';
-import { updateItem as updateItemDb, deleteItem as deleteItemDb, createItem as createItemDb, toggleFavoriteItem as toggleFavoriteItemDb } from '@/lib/db/items';
+import { updateItem as updateItemDb, deleteItem as deleteItemDb, createItem as createItemDb, toggleFavoriteItem as toggleFavoriteItemDb, toggleItemPin as toggleItemPinDb } from '@/lib/db/items';
 import type { ItemDetail } from '@/lib/db/items';
 import { deleteFromR2 } from '@/lib/r2';
 
@@ -147,6 +147,23 @@ export async function toggleFavoriteItem(
   }
 
   return { success: true, isFavorite: result };
+}
+
+export async function toggleItemPin(
+  itemId: string
+): Promise<{ success: true; isPinned: boolean } | { success: false; error: string }> {
+  const session = await auth();
+  const userId = session?.user?.id;
+  if (!userId) {
+    return { success: false, error: 'Unauthorized' };
+  }
+
+  const result = await toggleItemPinDb(userId, itemId);
+  if (result === null) {
+    return { success: false, error: 'Item not found' };
+  }
+
+  return { success: true, isPinned: result };
 }
 
 export async function deleteItem(
