@@ -1,20 +1,10 @@
-# Current Feature — Settings Page
+# Current Feature
 
 ## Status
-In Progress
 
 ## Goals
-- Create a `/settings` route with DashboardShell layout, protected by middleware
-- Move the Account section (ChangePasswordForm + DeleteAccountDialog) from `/profile` to `/settings`
-- Add a "Settings" link in the sidebar user dropdown (between Profile and Sign Out)
-- Profile page retains user info and usage stats only
 
 ## Notes
-- Reuse existing `ChangePasswordForm` and `DeleteAccountDialog` components (move files from `src/app/profile/` to `src/app/settings/`)
-- Add `/settings` and `/settings/*` to the protected routes in `src/proxy.ts`
-- Sidebar dropdown: add Settings item with a `Settings` (gear) icon from lucide-react, linking to `/settings`
-- Keep the same server actions (`changePasswordAction`, `deleteAccountAction`) — just update imports if file paths change
-- Profile page (`src/app/profile/page.tsx`) should be simplified to remove the Account section and its imports
 
 ## History
 
@@ -59,3 +49,4 @@ In Progress
 - **2026-04-01** — Collection edit, delete & favorite actions: `/collections/[id]` detail page now has Edit, Delete, and Favorite (disabled placeholder) buttons; Edit opens `EditCollectionDialog` modal (name + description); Delete opens `DeleteCollectionDialog` confirmation (redirects to `/collections`); collection cards on `/collections` and dashboard use `CollectionCardMenu` (3-dot dropdown with Edit, Delete, Favorite); cards restructured with stretched-link pattern (`<div>` + absolute `<Link>` overlay) so dropdown dialogs don't trigger navigation; `updateCollection` and `deleteCollection` DB queries (user-scoped); `updateCollection` and `deleteCollection` server actions (Zod validation, auth check, `{ success, data | error }` pattern); items are never deleted when a collection is deleted (cascade removes only join rows); 11 new tests (4 DB, 7 action).
 - **2026-04-01** — Global search command palette: Cmd+K / Ctrl+K opens a `CommandDialog` (shadcn cmdk) with fuzzy search across all user items and collections; TopBar search input replaced with clickable trigger that opens the palette; results grouped into Items (with type icon + color) and Collections (with item count) sections; selecting an item opens the global `ItemDrawer`; selecting a collection navigates to `/collections/[id]`; `getSearchItems` and `getSearchCollections` DB queries (lightweight select with minimal fields); `fetchSearchData` server action (auth check, parallel fetch); `CommandPalette` component in `DashboardShell` with keyboard shortcut listener; search data fetched on first open and cached; 3 new tests (server action auth guard, happy path, user scoping).
 - **2026-04-02** — Pagination: added pagination to `/items/[type]` and `/collections/[id]` pages with `skip/take` + `count` DB queries; constants `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`, `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10` in `src/lib/constants/item-types.ts`; reusable `Pagination` component (`src/components/shared/Pagination.tsx`) with numbered page links, prev/next (greyed out at bounds), and ellipsis; `getItemsByType` and `getItemsByCollection` return `{ items, total }`; dashboard calls use named constants; pages read `?page=` from searchParams; 2 tests updated for new return types.
+- **2026-04-02** — Settings page: created `/settings` route with DashboardShell layout; moved `ChangePasswordForm`, `DeleteAccountDialog`, and `actions.ts` (change password + delete account) from `src/app/profile/` to `src/app/settings/`; added Settings link with gear icon to sidebar user dropdown (between Profile and Sign Out); protected `/settings` in `src/proxy.ts` middleware matcher; simplified profile page to show only user info and usage stats; `changePasswordAction` now redirects to `/settings?passwordChanged=1`; 10 unit tests for settings server actions.
