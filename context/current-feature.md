@@ -1,29 +1,10 @@
-# Current Feature: Favorite Toggle for Items & Collections
+# Current Feature
 
 ## Status
-In Progress
 
 ## Goals
-- Wire up the existing placeholder Favorite buttons so they actually toggle `isFavorite` in the database
-- **ItemDrawer**: Star button calls a server action, updates optimistically, shows toast
-- **Collection detail page** (`CollectionDetailActions`): Star button toggles collection favorite, no longer disabled
-- **Collection card menu** (`CollectionCardMenu`): "Favorite" dropdown item toggles collection favorite, no longer disabled
-- All toggles refresh sidebar favorites and relevant lists via `router.refresh()`
-- Unit tests for new DB queries and server actions
 
 ## Notes
-- DB schema already has `isFavorite` on both `Item` and `Collection` models with indexes
-- All three UI buttons exist as disabled/no-op placeholders — just need onClick + server logic
-- Existing read-side queries (`getFavoriteItems`, `getFavoriteCollections`, sidebar, stats) already work
-- Need: `toggleFavoriteItem` and `toggleFavoriteCollection` DB queries + server actions
-- Key files to modify:
-  - `src/lib/db/items.ts` — add `toggleFavoriteItem`
-  - `src/lib/db/collections.ts` — add `toggleFavoriteCollection`
-  - `src/actions/items.ts` — add `toggleFavoriteItemAction`
-  - `src/actions/collections.ts` — add `toggleFavoriteCollectionAction`
-  - `src/components/items/ItemDrawer.tsx` — wire up Star button onClick
-  - `src/components/collections/CollectionDetailActions.tsx` — remove disabled, add onClick
-  - `src/components/collections/CollectionCardMenu.tsx` — remove disabled, add onClick
 
 ## History
 
@@ -71,3 +52,4 @@ In Progress
 - **2026-04-02** — Settings page: created `/settings` route with DashboardShell layout; moved `ChangePasswordForm`, `DeleteAccountDialog`, and `actions.ts` (change password + delete account) from `src/app/profile/` to `src/app/settings/`; added Settings link with gear icon to sidebar user dropdown (between Profile and Sign Out); protected `/settings` in `src/proxy.ts` middleware matcher; simplified profile page to show only user info and usage stats; `changePasswordAction` now redirects to `/settings?passwordChanged=1`; 10 unit tests for settings server actions.
 - **2026-04-02** — Editor preferences settings: added `editorPreferences` JSON column on User model with migration `20260402113450_add_editor_preferences`; `src/lib/db/editor-preferences.ts` with `getEditorPreferences` and `updateEditorPreferences` DB queries (defaults: fontSize 12, tabSize 2, wordWrap on, minimap off, theme vs-dark); `updateEditorPreferencesAction` server action with validation for theme, fontSize, tabSize; `EditorPreferencesContext` (`src/contexts/EditorPreferencesContext.tsx`) with optimistic updates, wired into `DashboardShell` and all 5 layouts; `EditorPreferencesForm` on `/settings` page with font size, tab size, theme dropdowns and word wrap, minimap toggles — auto-saves on change with success toast; `CodeEditor` component now consumes preferences from context and supports custom Monaco themes (monokai, github-dark) via `beforeMount`; 10 new unit tests (4 DB query, 6 server action).
 - **2026-04-02** — Favorites page: created `/favorites` route with DashboardShell layout and middleware protection; `getFavoriteItems` DB query in `src/lib/db/items.ts` and `getFavoriteCollections` in `src/lib/db/collections.ts` (both sorted by `updatedAt` desc); compact terminal-style list view (`FavoritesList` client component) with monospace font, minimal padding, no cards — items section (type icon, title, type badge, date; click opens ItemDrawer) and collections section (folder icon, name, item count, date; click navigates to `/collections/[id]`); counts in page header and section headers; empty state when no favorites; star icon button added to TopBar linking to `/favorites`.
+- **2026-04-02** — Favorite toggle for items & collections: wired up existing placeholder favorite buttons in `ItemDrawer` (star button with optimistic update), `CollectionDetailActions` (star icon button, no longer disabled), and `CollectionCardMenu` (dropdown item shows "Favorite"/"Unfavorite" with filled star); `toggleFavoriteItem` DB query and server action in `src/lib/db/items.ts` and `src/actions/items.ts`; `toggleFavoriteCollection` DB query and server action in `src/lib/db/collections.ts` and `src/actions/collections.ts`; all toggles use optimistic state flip, toast feedback, and `router.refresh()` to sync sidebar and lists; 12 new unit tests (3 DB items, 3 DB collections, 3 action items, 3 action collections).
