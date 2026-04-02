@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { changePasswordAction, deleteAccountAction } from './actions';
+import { changePasswordAction, deleteAccountAction, updateEditorPreferencesAction } from './actions';
 import { auth, signOut } from '@/auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
@@ -10,6 +10,13 @@ vi.mock('bcryptjs', () => ({
     hash: vi.fn(),
   },
 }));
+
+vi.mock('@/lib/db/editor-preferences', () => ({
+  updateEditorPreferences: vi.fn(),
+}));
+
+import { updateEditorPreferences } from '@/lib/db/editor-preferences';
+const mockUpdateEditorPreferences = vi.mocked(updateEditorPreferences);
 
 const mockAuth = vi.mocked(auth);
 const mockSignOut = vi.mocked(signOut);
@@ -95,6 +102,50 @@ describe('changePasswordAction', () => {
     const fd = makeFormData({ currentPassword: 'oldpass1!', newPassword: 'newpass1!', confirmPassword: 'newpass1!' });
     const result = await changePasswordAction(null, fd);
     expect(result).toBe('Something went wrong. Please try again.');
+  });
+});
+
+describe('updateEditorPreferencesAction', () => {
+  it('returns error when unauthenticated', async () => {
+    mockAuth.mockResolvedValue(null as never);
+    const result = await updateEditorPreferencesAction({ fontSize: 14 });
+    expect(result).toEqual({ success: false, error: 'Not authenticated' });
+  });
+
+  it('returns error for invalid theme', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    const result = await updateEditorPreferencesAction({ theme: 'invalid-theme' });
+    expect(result).toEqual({ success: false, error: 'Invalid theme' });
+  });
+
+  it('returns error for invalid font size', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    const result = await updateEditorPreferencesAction({ fontSize: 99 });
+    expect(result).toEqual({ success: false, error: 'Invalid font size' });
+  });
+
+  it('returns error for invalid tab size', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    const result = await updateEditorPreferencesAction({ tabSize: 3 });
+    expect(result).toEqual({ success: false, error: 'Invalid tab size' });
+  });
+
+  it('updates preferences on success', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    const updated = { fontSize: 16, tabSize: 4, wordWrap: true, minimap: false, theme: 'monokai' };
+    mockUpdateEditorPreferences.mockResolvedValue(updated);
+
+    const result = await updateEditorPreferencesAction({ fontSize: 16, theme: 'monokai' });
+    expect(result).toEqual({ success: true, data: updated });
+    expect(mockUpdateEditorPreferences).toHaveBeenCalledWith('user-1', { fontSize: 16, theme: 'monokai' });
+  });
+
+  it('returns error when DB update fails', async () => {
+    mockAuth.mockResolvedValue(session as never);
+    mockUpdateEditorPreferences.mockRejectedValue(new Error('DB error'));
+
+    const result = await updateEditorPreferencesAction({ fontSize: 14 });
+    expect(result).toEqual({ success: false, error: 'Something went wrong. Please try again.' });
   });
 });
 

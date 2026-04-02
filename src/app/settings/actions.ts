@@ -4,6 +4,10 @@ import { redirect } from 'next/navigation';
 import bcrypt from 'bcryptjs';
 import { auth, signOut } from '@/auth';
 import { prisma } from '@/lib/prisma';
+import {
+  updateEditorPreferences,
+  type EditorPreferences,
+} from '@/lib/db/editor-preferences';
 
 export async function changePasswordAction(
   _prevState: string | null,
@@ -41,6 +45,34 @@ export async function changePasswordAction(
   }
 
   redirect('/settings?passwordChanged=1');
+}
+
+const VALID_THEMES = ['vs-dark', 'monokai', 'github-dark'];
+const VALID_FONT_SIZES = [10, 12, 14, 16, 18, 20];
+const VALID_TAB_SIZES = [2, 4, 8];
+
+export async function updateEditorPreferencesAction(
+  preferences: Partial<EditorPreferences>,
+): Promise<{ success: boolean; data?: EditorPreferences; error?: string }> {
+  const session = await auth();
+  if (!session?.user?.id) return { success: false, error: 'Not authenticated' };
+
+  if (preferences.theme && !VALID_THEMES.includes(preferences.theme)) {
+    return { success: false, error: 'Invalid theme' };
+  }
+  if (preferences.fontSize && !VALID_FONT_SIZES.includes(preferences.fontSize)) {
+    return { success: false, error: 'Invalid font size' };
+  }
+  if (preferences.tabSize && !VALID_TAB_SIZES.includes(preferences.tabSize)) {
+    return { success: false, error: 'Invalid tab size' };
+  }
+
+  try {
+    const updated = await updateEditorPreferences(session.user.id, preferences);
+    return { success: true, data: updated };
+  } catch {
+    return { success: false, error: 'Something went wrong. Please try again.' };
+  }
 }
 
 export async function deleteAccountAction(): Promise<string | null> {

@@ -4,6 +4,7 @@ import { getProfileUser } from '@/lib/db/profile';
 import { CheckCircle } from 'lucide-react';
 import { ChangePasswordForm } from './ChangePasswordForm';
 import { DeleteAccountDialog } from './DeleteAccountDialog';
+import { EditorPreferencesForm } from './EditorPreferencesForm';
 
 export default async function SettingsPage({
   searchParams,
@@ -26,6 +27,14 @@ export default async function SettingsPage({
         <h1 className="text-2xl font-bold text-foreground">Settings</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Manage your account settings</p>
       </div>
+
+      {/* Editor Preferences */}
+      <section>
+        <h2 className="text-base font-semibold text-foreground mb-4">Editor</h2>
+        <div className="border border-border rounded-lg p-4">
+          <EditorPreferencesForm />
+        </div>
+      </section>
 
       {/* Account Actions */}
       <section>
