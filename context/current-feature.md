@@ -1,26 +1,11 @@
-# Current Feature: Homepage Mockup
+# Current Feature
 
 ## Status
-In Progress
+Not Started
 
 ## Goals
-- Create a static marketing homepage in `prototypes/homepage/` with `index.html`, `styles.css`, `script.js`
-- Hero section with "chaos to order" concept: floating icons (left), pulsing arrow (center), dashboard preview (right)
-- Chaos icons animate with requestAnimationFrame — drift, bounce off walls, repel from mouse cursor
-- Fixed top nav with logo, Features/Pricing links, Sign In/Get Started buttons (navbar gets more opaque on scroll)
-- Features section: 6 cards (Code Snippets, AI Prompts, Instant Search, Commands, Files & Docs, Collections) with item type accent colors
-- AI section: two-column layout with Pro badge, AI capabilities checklist, and code editor mockup with "AI Generated Tags" demo
-- Pricing section: Free vs Pro ($8/mo or $72/yr toggle), Pro card highlighted with "Most Popular" badge
-- CTA section and footer with logo, link columns, copyright
-- Scroll-triggered fade-in animations for sections
-- Responsive: mobile stacks chaos/arrow/dashboard vertically, arrow rotates 90°, single-column grids
 
 ## Notes
-- This is a standalone HTML/CSS/JS prototype, NOT part of the Next.js app
-- Dark theme with custom accent colors (different from app colors): Snippet #3b82f6, Prompt #f59e0b, Command #06b6d4, Note #22c55e, File #64748b, Image #ec4899, URL #6366f1
-- Hero text: "Stop Losing Your Developer Knowledge" headline with gradient text
-- Free tier: $0, 50 items, 3 collections; Pro tier: $8/mo or $72/yr, unlimited, AI features
-- Chaos container has 8 floating icons: Notion, GitHub, Slack, VS Code, Browser tabs, Terminal, Text file, Bookmark
 
 ## History
 
@@ -70,3 +55,4 @@ In Progress
 - **2026-04-02** — Favorites page: created `/favorites` route with DashboardShell layout and middleware protection; `getFavoriteItems` DB query in `src/lib/db/items.ts` and `getFavoriteCollections` in `src/lib/db/collections.ts` (both sorted by `updatedAt` desc); compact terminal-style list view (`FavoritesList` client component) with monospace font, minimal padding, no cards — items section (type icon, title, type badge, date; click opens ItemDrawer) and collections section (folder icon, name, item count, date; click navigates to `/collections/[id]`); counts in page header and section headers; empty state when no favorites; star icon button added to TopBar linking to `/favorites`.
 - **2026-04-02** — Favorite toggle for items & collections: wired up existing placeholder favorite buttons in `ItemDrawer` (star button with optimistic update), `CollectionDetailActions` (star icon button, no longer disabled), and `CollectionCardMenu` (dropdown item shows "Favorite"/"Unfavorite" with filled star); `toggleFavoriteItem` DB query and server action in `src/lib/db/items.ts` and `src/actions/items.ts`; `toggleFavoriteCollection` DB query and server action in `src/lib/db/collections.ts` and `src/actions/collections.ts`; all toggles use optimistic state flip, toast feedback, and `router.refresh()` to sync sidebar and lists; 12 new unit tests (3 DB items, 3 DB collections, 3 action items, 3 action collections).
 - **2026-04-02** — Favorites page sorting: added client-side sorting to `FavoritesList` component with compact inline sort controls (Name, Date, Type); clicking active sort toggles asc/desc direction; Name sorts alphabetically, Date sorts by created/updated date, Type groups items by item type name (collections fall back to name sort); memoized with `useMemo`; terminal-style monospace button UI with arrow indicators.
+- **2026-04-02** — Homepage mockup: created standalone HTML/CSS/JS marketing page in `prototypes/homepage/`; hero section with "chaos to order" concept — 8 floating icons animated with requestAnimationFrame (drift, wall-bounce, mouse repulsion), pulsing transform arrow, and dashboard preview mockup; fixed navbar with scroll opacity; 6-card features grid with item type accent colors; AI section with Pro badge, capabilities checklist, and code editor mockup with AI-generated tags demo; pricing section with Free vs Pro cards and monthly/yearly toggle; CTA section and footer; IntersectionObserver scroll fade-in animations; fully responsive with mobile vertical stacking and rotated arrow.
