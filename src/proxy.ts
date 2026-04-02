@@ -7,12 +7,13 @@ export const proxy = auth((req) => {
   const isLoggedIn = !!req.auth;
   const isOnDashboard = req.nextUrl.pathname.startsWith("/dashboard");
   const isOnProfile = req.nextUrl.pathname.startsWith("/profile");
+  const isOnSettings = req.nextUrl.pathname.startsWith("/settings");
 
-  if ((isOnDashboard || isOnProfile) && !isLoggedIn) {
+  if ((isOnDashboard || isOnProfile || isOnSettings) && !isLoggedIn) {
     return Response.redirect(new URL("/sign-in", req.nextUrl));
   }
 });
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/profile/:path*", "/profile"],
+  matcher: ["/dashboard/:path*", "/profile/:path*", "/profile", "/settings/:path*", "/settings"],
 };

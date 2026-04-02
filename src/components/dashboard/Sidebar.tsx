@@ -9,6 +9,7 @@ import {
   PanelLeft,
   LogOut,
   User,
+  Settings,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SidebarItemType } from '@/lib/db/items';
@@ -213,6 +214,12 @@ function SidebarContent({
               <Link href="/profile" className="flex items-center gap-2 w-full">
                 <User className="h-4 w-4" />
                 Profile
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              <Link href="/settings" className="flex items-center gap-2 w-full">
+                <Settings className="h-4 w-4" />
+                Settings
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />

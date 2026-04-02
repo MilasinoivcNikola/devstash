@@ -1,10 +1,20 @@
-# Current Feature
+# Current Feature — Settings Page
 
 ## Status
+In Progress
 
 ## Goals
+- Create a `/settings` route with DashboardShell layout, protected by middleware
+- Move the Account section (ChangePasswordForm + DeleteAccountDialog) from `/profile` to `/settings`
+- Add a "Settings" link in the sidebar user dropdown (between Profile and Sign Out)
+- Profile page retains user info and usage stats only
 
 ## Notes
+- Reuse existing `ChangePasswordForm` and `DeleteAccountDialog` components (move files from `src/app/profile/` to `src/app/settings/`)
+- Add `/settings` and `/settings/*` to the protected routes in `src/proxy.ts`
+- Sidebar dropdown: add Settings item with a `Settings` (gear) icon from lucide-react, linking to `/settings`
+- Keep the same server actions (`changePasswordAction`, `deleteAccountAction`) — just update imports if file paths change
+- Profile page (`src/app/profile/page.tsx`) should be simplified to remove the Account section and its imports
 
 ## History
 

@@ -40,7 +40,7 @@ export async function changePasswordAction(
     return 'Something went wrong. Please try again.';
   }
 
-  redirect('/profile?passwordChanged=1');
+  redirect('/settings?passwordChanged=1');
 }
 
 export async function deleteAccountAction(): Promise<string | null> {
