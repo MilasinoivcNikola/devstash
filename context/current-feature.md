@@ -1,10 +1,26 @@
-# Current Feature
+# Current Feature: Homepage Mockup
 
 ## Status
+In Progress
 
 ## Goals
+- Create a static marketing homepage in `prototypes/homepage/` with `index.html`, `styles.css`, `script.js`
+- Hero section with "chaos to order" concept: floating icons (left), pulsing arrow (center), dashboard preview (right)
+- Chaos icons animate with requestAnimationFrame — drift, bounce off walls, repel from mouse cursor
+- Fixed top nav with logo, Features/Pricing links, Sign In/Get Started buttons (navbar gets more opaque on scroll)
+- Features section: 6 cards (Code Snippets, AI Prompts, Instant Search, Commands, Files & Docs, Collections) with item type accent colors
+- AI section: two-column layout with Pro badge, AI capabilities checklist, and code editor mockup with "AI Generated Tags" demo
+- Pricing section: Free vs Pro ($8/mo or $72/yr toggle), Pro card highlighted with "Most Popular" badge
+- CTA section and footer with logo, link columns, copyright
+- Scroll-triggered fade-in animations for sections
+- Responsive: mobile stacks chaos/arrow/dashboard vertically, arrow rotates 90°, single-column grids
 
 ## Notes
+- This is a standalone HTML/CSS/JS prototype, NOT part of the Next.js app
+- Dark theme with custom accent colors (different from app colors): Snippet #3b82f6, Prompt #f59e0b, Command #06b6d4, Note #22c55e, File #64748b, Image #ec4899, URL #6366f1
+- Hero text: "Stop Losing Your Developer Knowledge" headline with gradient text
+- Free tier: $0, 50 items, 3 collections; Pro tier: $8/mo or $72/yr, unlimited, AI features
+- Chaos container has 8 floating icons: Notion, GitHub, Slack, VS Code, Browser tabs, Terminal, Text file, Bookmark
 
 ## History
 
