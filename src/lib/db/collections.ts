@@ -22,7 +22,7 @@ export type CollectionWithMeta = {
   dominantColor: string;
 };
 
-export async function getRecentCollections(userId: string): Promise<CollectionWithMeta[]> {
+export async function getRecentCollections(userId: string, limit?: number): Promise<CollectionWithMeta[]> {
   const collections = await prisma.collection.findMany({
     where: { userId },
     include: {
@@ -38,7 +38,7 @@ export async function getRecentCollections(userId: string): Promise<CollectionWi
       },
     },
     orderBy: { updatedAt: 'desc' },
-    take: 6,
+    ...(limit ? { take: limit } : {}),
   });
 
   return collections.map((collection) => {

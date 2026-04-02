@@ -6,13 +6,18 @@ import { ItemsGridWrapper } from '@/components/items/ItemsClientWrapper';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import CollectionDetailActions from '@/components/collections/CollectionDetailActions';
+import Pagination from '@/components/shared/Pagination';
+import { COLLECTIONS_PER_PAGE } from '@/lib/constants/item-types';
 
 export default async function CollectionDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { id } = await params;
+  const { page: pageParam } = await searchParams;
 
   const session = await auth();
   const userId = session?.user?.id;
@@ -21,7 +26,9 @@ export default async function CollectionDetailPage({
   const collection = await getCollectionById(userId, id);
   if (!collection) notFound();
 
-  const items = await getItemsByCollection(userId, id);
+  const currentPage = Math.max(1, parseInt(pageParam ?? '1', 10) || 1);
+  const { items, total } = await getItemsByCollection(userId, id, currentPage, COLLECTIONS_PER_PAGE);
+  const totalPages = Math.ceil(total / COLLECTIONS_PER_PAGE);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -40,19 +47,26 @@ export default async function CollectionDetailPage({
               <p className="text-sm text-muted-foreground mt-0.5">{collection.description}</p>
             )}
             <p className="text-sm text-muted-foreground mt-0.5">
-              {items.length} item{items.length !== 1 ? 's' : ''}
+              {total} item{total !== 1 ? 's' : ''}
             </p>
           </div>
           <CollectionDetailActions collection={collection} />
         </div>
       </div>
 
-      {items.length === 0 ? (
+      {items.length === 0 && currentPage === 1 ? (
         <div className="bg-card border border-border rounded-lg p-12 text-center">
           <p className="text-muted-foreground text-sm">No items in this collection yet.</p>
         </div>
       ) : (
-        <ItemsGridWrapper items={items} layout="grouped" />
+        <>
+          <ItemsGridWrapper items={items} layout="grouped" />
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            basePath={`/collections/${id}`}
+          />
+        </>
       )}
     </div>
   );

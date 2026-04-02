@@ -19,6 +19,12 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   Link: LinkIcon,
 };
 
+// Pagination
+export const ITEMS_PER_PAGE = 21;
+export const COLLECTIONS_PER_PAGE = 21;
+export const DASHBOARD_COLLECTIONS_LIMIT = 6;
+export const DASHBOARD_RECENT_ITEMS_LIMIT = 10;
+
 export const ITEM_TYPE_COLORS: Record<string, string> = {
   snippet: '#3b82f6',
   prompt: '#8b5cf6',

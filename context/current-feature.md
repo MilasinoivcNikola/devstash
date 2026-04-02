@@ -1,18 +1,24 @@
-# Current Feature
+# Pagination
 
 ## Status
+In Progress
 
 ## Goals
+- Add pagination to `/items/[type]` pages (21 items per page)
+- Add pagination to `/collections/[id]` pages (21 items per page)
+- Pagination controls at bottom with page numbers and prev/next links
+- Disable (grey out) prev/next when not available
+- Use constants: `ITEMS_PER_PAGE = 21`, `COLLECTIONS_PER_PAGE = 21`
+- Dashboard limits: `DASHBOARD_COLLECTIONS_LIMIT = 6`, `DASHBOARD_RECENT_ITEMS_LIMIT = 10`
+- Only fetch the amount each page requires (no fetching all resources at once)
 
 ## Notes
+- DB queries need `skip`/`take` with count queries for total pages
+- Page number comes from URL search params (`?page=1`)
+- Reusable `Pagination` component for both pages
+- Dashboard queries already have limits, just extract to named constants
 
 ## History
-
-- **2026-04-01** — Global search command palette: Cmd+K / Ctrl+K opens a `CommandDialog` (shadcn cmdk) with fuzzy search across all user items and collections; TopBar search input replaced with clickable trigger that opens the palette; results grouped into Items (with type icon + color) and Collections (with item count) sections; selecting an item opens the global `ItemDrawer`; selecting a collection navigates to `/collections/[id]`; `getSearchItems` and `getSearchCollections` DB queries (lightweight select with minimal fields); `fetchSearchData` server action (auth check, parallel fetch); `CommandPalette` component in `DashboardShell` with keyboard shortcut listener; search data fetched on first open and cached; 3 new tests (server action auth guard, happy path, user scoping).
-
-- **2026-04-01** — Collection edit, delete & favorite actions: `/collections/[id]` detail page now has Edit, Delete, and Favorite (disabled placeholder) buttons; Edit opens `EditCollectionDialog` modal (name + description); Delete opens `DeleteCollectionDialog` confirmation (redirects to `/collections`); collection cards on `/collections` and dashboard use `CollectionCardMenu` (3-dot dropdown with Edit, Delete, Favorite); cards restructured with stretched-link pattern (`<div>` + absolute `<Link>` overlay) so dropdown dialogs don't trigger navigation; `updateCollection` and `deleteCollection` DB queries (user-scoped); `updateCollection` and `deleteCollection` server actions (Zod validation, auth check, `{ success, data | error }` pattern); items are never deleted when a collection is deleted (cascade removes only join rows); 11 new tests (4 DB, 7 action).
-
-- **2026-04-01** — Collection detail type-grouped layout: `/collections/[id]` now groups items by type with section headers (icon + name + count); image items render as gallery thumbnails (`ImageThumbnailCard`), file items as file-list rows (`FileListRow`), all other types as standard card grid; groups sorted by item count descending; extracted `ItemsSection`, `GroupedItemsGrid`, and `getLayoutForType` into `ItemsClientWrapper.tsx`; added `'grouped'` layout option to `ItemsGridWrapper`.
 
 - **2026-03-27** — Initial Next.js setup from Create Next App; cleaned up default assets, added project context files, updated CLAUDE.md with project instructions.
 - **2026-03-27** — Dashboard UI Phase 1: ShadCN UI initialized, dark mode by default, /dashboard route with layout, TopBar with DevStash logo, centered search, and action buttons, sidebar and main area placeholders.
@@ -51,3 +57,6 @@
 - **2026-04-01** — Collection create: `createCollection` DB query in `src/lib/db/collections.ts` (user-scoped); `createCollection` server action in `src/actions/collections.ts` (Zod validation, auth check, `{ success, data | error }` pattern); `CreateCollectionDialog` component with name (required) + description (optional) fields, toast feedback, `router.refresh()` on success; wired into TopBar replacing the static "New Collection" button; 7 new tests (2 DB, 5 action).
 - **2026-04-01** — Add item to collections: `getUserCollections` DB query and server action for fetching user's collections; `CollectionPicker` component with multi-select dropdown, search filter, checkboxes, and removable tag chips; `createItem` DB function now accepts `collectionIds` and creates `ItemCollection` records; `updateItem` DB function syncs collections in a `$transaction` (delete all + create new); both `CreateItemDialog` and `ItemDrawer` edit mode fetch collections on open and pass `collectionIds` through server actions; Zod schemas updated with optional `collectionIds` array (defaults to `[]`); 9 new tests (2 DB collections, 3 DB items, 2 action collections, 2 action items).
 - **2026-04-01** — Collections pages: `/collections` page lists all user collections in a 3-column grid with `CreateCollectionDialog` button and empty state; `/collections/[id]` page shows collection name, description, item count, and items via `ItemsGridWrapper` with back link; `getAllCollections` and `getCollectionById` DB queries in `src/lib/db/collections.ts`; `getItemsByCollection` DB query in `src/lib/db/items.ts`; dashboard collection cards converted from `<div>` to `<Link>` pointing to `/collections/[id]` with hover effect; sidebar links already pointed to correct routes; 7 new tests (5 collections DB, 2 items DB).
+- **2026-04-01** — Collection detail type-grouped layout: `/collections/[id]` now groups items by type with section headers (icon + name + count); image items render as gallery thumbnails (`ImageThumbnailCard`), file items as file-list rows (`FileListRow`), all other types as standard card grid; groups sorted by item count descending; extracted `ItemsSection`, `GroupedItemsGrid`, and `getLayoutForType` into `ItemsClientWrapper.tsx`; added `'grouped'` layout option to `ItemsGridWrapper`.
+- **2026-04-01** — Collection edit, delete & favorite actions: `/collections/[id]` detail page now has Edit, Delete, and Favorite (disabled placeholder) buttons; Edit opens `EditCollectionDialog` modal (name + description); Delete opens `DeleteCollectionDialog` confirmation (redirects to `/collections`); collection cards on `/collections` and dashboard use `CollectionCardMenu` (3-dot dropdown with Edit, Delete, Favorite); cards restructured with stretched-link pattern (`<div>` + absolute `<Link>` overlay) so dropdown dialogs don't trigger navigation; `updateCollection` and `deleteCollection` DB queries (user-scoped); `updateCollection` and `deleteCollection` server actions (Zod validation, auth check, `{ success, data | error }` pattern); items are never deleted when a collection is deleted (cascade removes only join rows); 11 new tests (4 DB, 7 action).
+- **2026-04-01** — Global search command palette: Cmd+K / Ctrl+K opens a `CommandDialog` (shadcn cmdk) with fuzzy search across all user items and collections; TopBar search input replaced with clickable trigger that opens the palette; results grouped into Items (with type icon + color) and Collections (with item count) sections; selecting an item opens the global `ItemDrawer`; selecting a collection navigates to `/collections/[id]`; `getSearchItems` and `getSearchCollections` DB queries (lightweight select with minimal fields); `fetchSearchData` server action (auth check, parallel fetch); `CommandPalette` component in `DashboardShell` with keyboard shortcut listener; search data fetched on first open and cached; 3 new tests (server action auth guard, happy path, user scoping).

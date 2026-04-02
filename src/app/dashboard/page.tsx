@@ -8,7 +8,7 @@ import {
   LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
-import { ICON_MAP } from '@/lib/constants/item-types';
+import { ICON_MAP, DASHBOARD_COLLECTIONS_LIMIT, DASHBOARD_RECENT_ITEMS_LIMIT } from '@/lib/constants/item-types';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { ItemsGridWrapper } from '@/components/items/ItemsClientWrapper';
@@ -82,11 +82,11 @@ export default async function DashboardPage() {
   if (!userId) redirect('/sign-in');
 
   const [collections, collectionStats, itemStats, pinnedItems, recentItems] = await Promise.all([
-    getRecentCollections(userId),
+    getRecentCollections(userId, DASHBOARD_COLLECTIONS_LIMIT),
     getCollectionStats(userId),
     getItemStats(userId),
     getPinnedItems(userId),
-    getRecentItems(userId),
+    getRecentItems(userId, DASHBOARD_RECENT_ITEMS_LIMIT),
   ]);
 
   return (

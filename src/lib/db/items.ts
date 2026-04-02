@@ -93,25 +93,47 @@ export type SidebarItemType = {
   count: number;
 };
 
-export async function getItemsByType(userId: string, typeName: string): Promise<ItemWithMeta[]> {
-  const items = await prisma.item.findMany({
-    where: { userId, itemType: { name: typeName } },
-    include: itemInclude,
-    orderBy: { createdAt: 'desc' },
-  });
-  return items.map(mapItem);
+export async function getItemsByType(
+  userId: string,
+  typeName: string,
+  page = 1,
+  perPage = 21
+): Promise<{ items: ItemWithMeta[]; total: number }> {
+  const where = { userId, itemType: { name: typeName } };
+  const [items, total] = await Promise.all([
+    prisma.item.findMany({
+      where,
+      include: itemInclude,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * perPage,
+      take: perPage,
+    }),
+    prisma.item.count({ where }),
+  ]);
+  return { items: items.map(mapItem), total };
 }
 
-export async function getItemsByCollection(userId: string, collectionId: string): Promise<ItemWithMeta[]> {
-  const items = await prisma.item.findMany({
-    where: {
-      userId,
-      collections: { some: { collectionId } },
-    },
-    include: itemInclude,
-    orderBy: { createdAt: 'desc' },
-  });
-  return items.map(mapItem);
+export async function getItemsByCollection(
+  userId: string,
+  collectionId: string,
+  page = 1,
+  perPage = 21
+): Promise<{ items: ItemWithMeta[]; total: number }> {
+  const where = {
+    userId,
+    collections: { some: { collectionId } },
+  };
+  const [items, total] = await Promise.all([
+    prisma.item.findMany({
+      where,
+      include: itemInclude,
+      orderBy: { createdAt: 'desc' },
+      skip: (page - 1) * perPage,
+      take: perPage,
+    }),
+    prisma.item.count({ where }),
+  ]);
+  return { items: items.map(mapItem), total };
 }
 
 export type ItemDetail = ItemWithMeta & {

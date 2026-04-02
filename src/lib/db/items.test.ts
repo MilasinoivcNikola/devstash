@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 
 const mockFindFirst = vi.mocked(prisma.item.findFirst);
 const mockFindMany = vi.mocked(prisma.item.findMany);
+const mockCount = vi.mocked(prisma.item.count);
 const mockUpdate = vi.mocked(prisma.item.update);
 const mockDelete = vi.mocked(prisma.item.delete);
 const mockTransaction = vi.mocked(prisma.$transaction);
@@ -358,11 +359,13 @@ describe('getItemById', () => {
 describe('getItemsByCollection', () => {
   it('returns items filtered by collection and user', async () => {
     mockFindMany.mockResolvedValue([baseItem] as never);
+    mockCount.mockResolvedValue(1 as never);
 
     const result = await getItemsByCollection('user-1', 'col-1');
 
-    expect(result).toHaveLength(1);
-    expect(result[0].title).toBe('useAuth Hook');
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].title).toBe('useAuth Hook');
+    expect(result.total).toBe(1);
     expect(mockFindMany).toHaveBeenCalledWith({
       where: {
         userId: 'user-1',
@@ -373,14 +376,18 @@ describe('getItemsByCollection', () => {
         tags: expect.any(Object),
       }),
       orderBy: { createdAt: 'desc' },
+      skip: 0,
+      take: 21,
     });
   });
 
-  it('returns empty array when collection has no items', async () => {
+  it('returns empty result when collection has no items', async () => {
     mockFindMany.mockResolvedValue([] as never);
+    mockCount.mockResolvedValue(0 as never);
 
     const result = await getItemsByCollection('user-1', 'col-1');
 
-    expect(result).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.total).toBe(0);
   });
 });
