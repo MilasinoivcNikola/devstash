@@ -1,22 +1,10 @@
-# Current Feature: Client-Side Sorting for Favorites Page
+# Current Feature
 
 ## Status
-In Progress
 
 ## Goals
-- Add a sort control to the favorites page that lets users sort both items and collections
-- Sort options: **Name** (A-Z / Z-A), **Date** (newest / oldest), **Type** (grouped by item type name, alphabetical)
-- Sorting is client-side only (no DB changes, no server actions needed)
-- Sort state managed in `FavoritesList` component with `useState`
-- Both items and collections sections respect the active sort
-- For "type" sort on collections, fall back to sorting by name since collections don't have a type
-- Compact inline sort UI that matches the terminal-style aesthetic of the page
 
 ## Notes
-- All changes are in `src/app/favorites/FavoritesList.tsx` — purely client-side
-- No new DB queries, server actions, or API routes needed
-- No tests needed (pure UI sorting logic in a client component)
-- `ItemWithMeta` has `title`, `createdAt`, `itemType.name`; `FavoriteCollection` has `name`, `updatedAt`, `itemCount`
 
 ## History
 
@@ -65,3 +53,4 @@ In Progress
 - **2026-04-02** — Editor preferences settings: added `editorPreferences` JSON column on User model with migration `20260402113450_add_editor_preferences`; `src/lib/db/editor-preferences.ts` with `getEditorPreferences` and `updateEditorPreferences` DB queries (defaults: fontSize 12, tabSize 2, wordWrap on, minimap off, theme vs-dark); `updateEditorPreferencesAction` server action with validation for theme, fontSize, tabSize; `EditorPreferencesContext` (`src/contexts/EditorPreferencesContext.tsx`) with optimistic updates, wired into `DashboardShell` and all 5 layouts; `EditorPreferencesForm` on `/settings` page with font size, tab size, theme dropdowns and word wrap, minimap toggles — auto-saves on change with success toast; `CodeEditor` component now consumes preferences from context and supports custom Monaco themes (monokai, github-dark) via `beforeMount`; 10 new unit tests (4 DB query, 6 server action).
 - **2026-04-02** — Favorites page: created `/favorites` route with DashboardShell layout and middleware protection; `getFavoriteItems` DB query in `src/lib/db/items.ts` and `getFavoriteCollections` in `src/lib/db/collections.ts` (both sorted by `updatedAt` desc); compact terminal-style list view (`FavoritesList` client component) with monospace font, minimal padding, no cards — items section (type icon, title, type badge, date; click opens ItemDrawer) and collections section (folder icon, name, item count, date; click navigates to `/collections/[id]`); counts in page header and section headers; empty state when no favorites; star icon button added to TopBar linking to `/favorites`.
 - **2026-04-02** — Favorite toggle for items & collections: wired up existing placeholder favorite buttons in `ItemDrawer` (star button with optimistic update), `CollectionDetailActions` (star icon button, no longer disabled), and `CollectionCardMenu` (dropdown item shows "Favorite"/"Unfavorite" with filled star); `toggleFavoriteItem` DB query and server action in `src/lib/db/items.ts` and `src/actions/items.ts`; `toggleFavoriteCollection` DB query and server action in `src/lib/db/collections.ts` and `src/actions/collections.ts`; all toggles use optimistic state flip, toast feedback, and `router.refresh()` to sync sidebar and lists; 12 new unit tests (3 DB items, 3 DB collections, 3 action items, 3 action collections).
+- **2026-04-02** — Favorites page sorting: added client-side sorting to `FavoritesList` component with compact inline sort controls (Name, Date, Type); clicking active sort toggles asc/desc direction; Name sorts alphabetically, Date sorts by created/updated date, Type groups items by item type name (collections fall back to name sort); memoized with `useMemo`; terminal-style monospace button UI with arrow indicators.
